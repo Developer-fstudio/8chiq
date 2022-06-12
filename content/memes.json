@@ -1,0 +1,63 @@
+[
+    {
+      "id": "1410474",
+      "category": "Funny",
+      "title": "Kill La Kill and what it might means.",
+      "age": "1h",
+      "img": "/static/images/test2.webp",
+      "like": "519",
+      "dislike": "102",
+      "comment": "297",
+      "tags": [
+        "Dark",
+        "NFT Meme",
+        "Anime"
+      ]
+    },
+    {
+        "id": "2413474",
+        "category": "Funny",
+        "title": "Yamborgini high.",
+        "age": "1h",
+        "img": "/static/images/test3.webp",
+        "like": "1152",
+        "dislike": "202",
+        "comment": "797",
+        "tags": [
+          "Car",
+          "Meme",
+          "Yambo"
+        ]
+      },
+      {
+        "id": "3413474",
+        "category": "Relationship",
+        "title": "Double standards at its finest.",
+        "age": "1h",
+        "img": "/static/images/test4.webp",
+        "like": "1152",
+        "dislike": "202",
+        "comment": "797",
+        "tags": [
+          "Car",
+          "Meme",
+          "Yambo"
+        ]
+      },
+      {
+        "id": "4513474",
+        "category": "Relationship",
+        "title": "Double standards at its finest.",
+        "age": "1h",
+        "img": "/static/images/test4.webp",
+        "like": "1152",
+        "dislike": "202",
+        "comment": "797",
+        "tags": [
+          "Car",
+          "Meme",
+          "Yambo"
+        ]
+      }
+  ]
+  
