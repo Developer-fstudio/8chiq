@@ -38,8 +38,10 @@ contract MemeMarketplace is ReentrancyGuard {
         uint256 tokenId;
         address payable seller;
         address payable owner;
+        address payable minter;
         uint256 price;
         bool sold;
+        bool isExist;
     }
 
     // tokenId return which marketToken - fetch which one it is
@@ -53,13 +55,20 @@ contract MemeMarketplace is ReentrancyGuard {
         uint indexed tokenId,
         address seller,
         address owner,
+        address minter,
         uint256 price,
-        bool sold
+        bool sold,
+        bool isExist
     );
 
     // get the listing price
     function getListingPrice() public view returns (uint256) {
         return listingPrice;
+    }
+
+    // check if tokenId exists
+        function isTokenExists(uint256 tokenId) public view returns (bool) {
+        return idToMarketToken[tokenId].isExist;
     }
 
     // two functios to interact with contract
@@ -76,20 +85,34 @@ contract MemeMarketplace is ReentrancyGuard {
 
         require(price > 0, 'Price must be at least one wei');
         require(msg.value > listingPrice, 'transaction value must be equal to listing price');
+        uint itemId;
 
-        _tokenIds.increment();
-        uint itemId = _tokenIds.current();
+        if (isTokenExists(tokenId)) {
+            // this mean token exist in marketplace before
+            idToMarketToken[tokenId].seller = payable(msg.sender);
+            idToMarketToken[tokenId].owner = payable(address(0));
+            idToMarketToken[tokenId].price = price;
+            idToMarketToken[tokenId].sold = false;
+          
+        } else {
+            // this mean token is new in market place
+            _tokenIds.increment();
+            itemId = _tokenIds.current();
 
-        //putting it up for sale - bool - no owner
-        idToMarketToken[itemId] = MarketToken(
-            itemId,
-            nftContract,
-            tokenId,
-            payable(msg.sender),
-            payable(address(0)),
-            price,
-            false            
-        );
+            //putting it up for sale - bool - no owner
+            idToMarketToken[tokenId] = MarketToken(
+                itemId,
+                nftContract,
+                tokenId,
+                payable(msg.sender),
+                payable(address(0)),
+                payable(msg.sender),
+                price,
+                false,
+                true           
+            );
+        }
+
 
         //NFT transaction
         IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
@@ -100,8 +123,10 @@ contract MemeMarketplace is ReentrancyGuard {
             tokenId, 
             payable(msg.sender), 
             address(0), 
+            payable(msg.sender), 
             price, 
-            false
+            false,
+            true
         );
 
     }
@@ -110,21 +135,21 @@ contract MemeMarketplace is ReentrancyGuard {
 
     function createMarketSale(
         address nftContract,
-        uint itemId
+        uint tokenId
     )
     public payable nonReentrant {
-        uint price = idToMarketToken[itemId].price;
-        uint tokenId = idToMarketToken[itemId].tokenId;
+        uint price = idToMarketToken[tokenId].price;
+        uint currTokenId = idToMarketToken[tokenId].tokenId;
 
         require(msg.value == price, 'Please submit the asking price in order to continue');
 
         // transfer the amount to the seller
-        idToMarketToken[itemId].seller.transfer(msg.value);
+        idToMarketToken[currTokenId].seller.transfer(msg.value);
 
         // transfer the token from contract address to the buyer
         ERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
-        idToMarketToken[itemId].owner = payable(msg.sender);
-        idToMarketToken[itemId].sold = true;
+        idToMarketToken[currTokenId].owner = payable(msg.sender);
+        idToMarketToken[currTokenId].sold = true;
         _tokensSold.increment();
 
         payable(owner).transfer(listingPrice);
@@ -187,7 +212,7 @@ contract MemeMarketplace is ReentrancyGuard {
         uint currentIndex = 0;
 
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketToken[i + 1].seller == msg.sender) {
+            if (idToMarketToken[i + 1].minter == msg.sender) {
                 itemCount += 1;
             }
         }

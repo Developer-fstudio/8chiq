@@ -23,6 +23,8 @@ const delimiters = [KeyCodes.comma, KeyCodes.enter];
 export default function Manage({memes}) {
 
     const [selectedMeme, setSelectedMeme] = useState(null)
+    const [isMinting, setIsMinting] = useState(false)
+    const [onSale, setOnSale] = useState(false)
     const { account, network, canPurchaseMeme } = useWalletInfo()
     const { eth } = useEthPrice()
     const { web3, isLoading, nftContract, marketContract } = useWeb3()
@@ -30,11 +32,12 @@ export default function Manage({memes}) {
     // file to upload
     const [fileUrl, setFileUrl] = useState(null)
     const [formInput, updateFormInput] = useState({price: '', name:'',
-      description:'', category:'Funny',
-      tags: [
-        { id: 'NFT', text: 'NFT' },
-        { id: 'Chiq', text: 'Chiq' },
-      ]})
+      description:'', category:'Funny'
+      // tags: [
+      //   { id: 'NFT', text: 'NFT' },
+      //   { id: 'Chiq', text: 'Chiq' },
+      // ]
+    })
     const router = useRouter()
 
     //handle delete tags
@@ -81,11 +84,22 @@ export default function Manage({memes}) {
     }
 
     async function createMarket() {
-      const {name, description, price} = formInput 
-      if(!name || !description || !price || !fileUrl) return 
+      const {name, description, price, category} = formInput
+      if (onSale) {
+
+        console.log('on sale, but information is not complete')
+        if(!name || !description || !price || !fileUrl || !category) return 
+
+      } else {
+
+        console.log('not on sale, but information is not complete')
+        if(!name || !description || !fileUrl || !category) return 
+
+      }
+      
       // upload to IPFS
       const data = JSON.stringify({
-          name, description, image: fileUrl
+          name, description, category, image: fileUrl
       })
       try {
           const added = await client.add(data)
@@ -100,16 +114,42 @@ export default function Manage({memes}) {
      async function createSale(url) {
       // create the items and list them on the marketplace
       
-
+      setIsMinting(true)
+      console.log("try to mint")
       // we want to create the token
-    
+      try {
+        const result = await nftContract.methods.mintToken(url).send({from: account.data})
+        .then(function(receipt){
+          setIsMinting(false)
+          console.log(receipt)
+          console.log("mint finish")
+          let event = receipt.events.ApprovalForAll
+          console.log(event)
+          let value = event.raw.data
+          // let tokenId = value.toNumber()
+          console.log(value)
+          // receipt can also be a new contract instance, when coming from a "contract.deploy({...}).send()"
+      });
+      } catch {
+        console.error("Purchase course: Operation has failed.")
+      }
       
       // list the item for sale on the marketplace 
+      if (onSale) {
+      //   let listingPrice = await marketContract.methods.getListingPrice()
+      //   listingPrice = listingPrice.toString()
+      //   const result = await marketContract.methods.mintToken(url).send({from: account})
+      //   .then(function(receipt){
+      //     setIsMinting(false)
+      //     console.log(receipt)
+      //     // receipt can also be a new contract instance, when coming from a "contract.deploy({...}).send()"
+      // });
+      }
 
 
-      transaction = await contract.makeMarketItem(nftaddress, tokenId, price, {value: listingPrice})
-      await transaction.wait()
-      router.push('./')
+      // transaction = await contract.makeMarketItem(nftaddress, tokenId, price, {value: listingPrice})
+      // await transaction.wait()
+      // router.push('./')
   }
 
     
@@ -144,7 +184,29 @@ export default function Manage({memes}) {
                   updateFormInput({...formInput, description: e.target.value})
                 }} 
                 />
+                {/* Price and buy start */}
+                <div className="mb-1 mt-2">
+                  <label className="mb-2 font-bold">Sell the NFT</label>
+                  <div className="text-xs text-gray-700 flex">
+                    <label className="flex items-center mr-2">
+                      <input
+                        checked={onSale}
+                        onChange={({target: {checked}}) => {
+                          // setOrder({
+                          //   ...order,
+                          //   price: checked ? order.price : eth.pricePerItem
+                          // })
+                         setOnSale(checked)
+                        }}
+                        type="checkbox"
+                        className="form-checkbox"
+                      />
+                    </label>
+                    <span>Tick to sell the NFT</span>
+                  </div>
+                </div>
                 <input
+                disabled={!onSale}
                 placeholder='Asset Price in Eth'
                 className='mt-2 border rounded p-4'
                 type="text"
@@ -174,31 +236,7 @@ export default function Manage({memes}) {
                 </div>
                 {/* Category End */}
                 {/* Tags Start */}
-                <div className="mt-4">
-                  <ReactTags
-                    tags={formInput.tags}
-                    // suggestions={suggestions}
-                    delimiters={delimiters}
-                    handleDelete={handleDelete}
-                    handleAddition={handleAddition}
-                    handleDrag={handleDrag}
-                    onClearAll={onClearAll}
-                    minQueryLength={2}
-                    maxLength={5}
-                    autofocus={false}
-                    allowDeleteFromEmptyInput={true}
-                    autocomplete={true}
-                    readOnly={false}
-                    allowUnique={true}
-                    allowDragDrop={true}
-                    inline={true}
-                    allowAdditionFromPaste={true}
-                    editable={true}
-                    clearAll={true}
-                    // handleTagClick={handleTagClick}
-                    inputFieldPosition="bottom"
-                  />
-                </div>
+                {/*  implementation later  */}
                 {/* Tags End */}                
                 <input
                 type='file'
