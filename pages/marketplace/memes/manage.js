@@ -8,7 +8,6 @@ import { useEthPrice } from '@components/hooks/useEthPrice'
 import {create as ipfsHttpClient} from 'ipfs-http-client'
 import { useRouter } from 'next/router'
 import { useWeb3 } from '@components/provider'
-import { WithContext as ReactTags } from 'react-tag-input';
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
@@ -28,6 +27,8 @@ export default function Manage({memes}) {
     const { account, network, canPurchaseMeme } = useWalletInfo()
     const { eth } = useEthPrice()
     const { web3, isLoading, nftContract, marketContract } = useWeb3()
+    console.log(marketContract)
+    console.log(nftContract)
 
     // file to upload
     const [fileUrl, setFileUrl] = useState(null)
@@ -116,18 +117,43 @@ export default function Manage({memes}) {
       
       setIsMinting(true)
       console.log("try to mint")
+      let tokenId
       // we want to create the token
       try {
         const result = await nftContract.methods.mintToken(url).send({from: account.data})
-        .then(function(receipt){
-          setIsMinting(false)
+        .then(async function(receipt){
           console.log(receipt)
           console.log("mint finish")
           let event = receipt.events.ApprovalForAll
           console.log(event)
           let value = event.raw.data
-          // let tokenId = value.toNumber()
+          tokenId = web3.utils.hexToNumber(value)
           console.log(value)
+
+          if (onSale) {
+            const price = formInput.price.toString()
+            let listingPrice = await marketContract.methods.getListingPrice().call()
+            console.log("ini listing price")
+            console.log(listingPrice)
+            // listingPrice = web3.utils.toWei(listingPrice.toString())
+            transaction = await marketContract.methods.makeMarketItem(nftContract.options.address, tokenId, price).send({from: account.data, value: listingPrice})
+          } else {
+            console.log('sempat coba marketContract')
+            // const price = formInput.price.toString()
+            let listingPrice = await marketContract.methods.getListingPrice().call()
+            listingPrice = listingPrice.toString()
+            result =  await marketContract.methods.makeMarketItemNonSale(nftContract.options.address, tokenId).send({from: account.data, value: listingPrice})
+            .then(async function(receipt){
+           
+             })
+          }
+    
+    
+          // transaction = await contract.makeMarketItem(nftaddress, tokenId, price, {value: listingPrice})
+          // await transaction.wait()
+          // router.push('./')
+          setIsMinting(false)
+          
           // receipt can also be a new contract instance, when coming from a "contract.deploy({...}).send()"
       });
       } catch {
@@ -135,22 +161,8 @@ export default function Manage({memes}) {
       }
       
       // list the item for sale on the marketplace 
-      if (onSale) {
-      //   let listingPrice = await marketContract.methods.getListingPrice()
-      //   listingPrice = listingPrice.toString()
-      //   const result = await marketContract.methods.mintToken(url).send({from: account})
-      //   .then(function(receipt){
-      //     setIsMinting(false)
-      //     console.log(receipt)
-      //     // receipt can also be a new contract instance, when coming from a "contract.deploy({...}).send()"
-      // });
-      }
 
-
-      // transaction = await contract.makeMarketItem(nftaddress, tokenId, price, {value: listingPrice})
-      // await transaction.wait()
-      // router.push('./')
-  }
+    }
 
     
  

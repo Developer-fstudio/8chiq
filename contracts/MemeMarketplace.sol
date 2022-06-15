@@ -84,8 +84,10 @@ contract MemeMarketplace is ReentrancyGuard {
         // nonReentrant is a modifier to prevent reentry attack
 
         require(price > 0, 'Price must be at least one wei');
-        require(msg.value > listingPrice, 'transaction value must be equal to listing price');
+        require(msg.value >= listingPrice, 'transaction value must be equal to listing price');
         uint itemId;
+        //NFT transaction
+        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
 
         if (isTokenExists(tokenId)) {
             // this mean token exist in marketplace before
@@ -114,8 +116,7 @@ contract MemeMarketplace is ReentrancyGuard {
         }
 
 
-        //NFT transaction
-        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
+    
 
         emit MarketTokenMinted(
             itemId, 
@@ -125,6 +126,63 @@ contract MemeMarketplace is ReentrancyGuard {
             address(0), 
             payable(msg.sender), 
             price, 
+            false,
+            true
+        );
+
+    }
+
+    // two functios to interact with contract
+    // 1. create a market item but not sale
+
+    function makeMarketItemNonSale(
+        address nftContract,
+        uint tokenId
+    ) 
+    public payable nonReentrant {
+        // nonReentrant is a modifier to prevent reentry attack
+
+        // require(price > 0, 'Price must be at least one wei');
+        // require(msg.value > listingPrice, 'transaction value must be equal to listing price');
+        uint itemId;
+        address ownerNow = IERC721(nftContract).ownerOf(tokenId);
+        require(msg.sender == ownerNow, 'You cannot manage this NFTs');
+        require(msg.value >= listingPrice, 'transaction value must be equal to listing price');
+
+        if (isTokenExists(tokenId)) {
+            // this mean token exist in marketplace before
+            idToMarketToken[tokenId].seller = payable(msg.sender);
+            idToMarketToken[tokenId].owner = payable(msg.sender);
+            idToMarketToken[tokenId].sold = true;
+          
+        } else {
+            // this mean token is new in market place
+            _tokenIds.increment();
+            itemId = _tokenIds.current();
+
+            //putting it up for sale - bool - no owner
+            idToMarketToken[tokenId] = MarketToken(
+                itemId,
+                nftContract,
+                tokenId,
+                payable(msg.sender),
+                payable(msg.sender),
+                payable(msg.sender),
+                0,
+                true,
+                true           
+            );
+        }
+
+
+        emit MarketTokenMinted(
+            itemId, 
+            nftContract, 
+            tokenId, 
+            payable(msg.sender), 
+            address(0), 
+            payable(msg.sender), 
+            0, 
             false,
             true
         );
@@ -226,6 +284,27 @@ contract MemeMarketplace is ReentrancyGuard {
                 items[currentIndex] = currentItem;
                 currentIndex += 1;
             }
+        }
+        return items;
+    }
+
+    //function to fetchAllItems - 
+    // return the number of all items
+
+    function fetchMarketAllTokens() public view returns(MarketToken[] memory) {
+        uint itemCount = _tokenIds.current();
+        // uint unsoldItemCount = itemCount - _tokensSold.current();
+        uint currentIndex = 0;
+
+        // looping over the number of items created (if number has not been sold populate the array)
+        MarketToken[] memory items = new MarketToken[](itemCount);
+        for (uint i=0; i < itemCount; i++) {
+
+            uint currentId = i + 1;
+            MarketToken storage currentItem = idToMarketToken[currentId];
+            items[currentIndex] = currentItem;
+            currentIndex += 1;
+        
         }
         return items;
     }
