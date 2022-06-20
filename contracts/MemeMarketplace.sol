@@ -42,6 +42,7 @@ contract MemeMarketplace is ReentrancyGuard {
         uint256 price;
         bool sold;
         bool isExist;
+        uint timeCreated;
     }
 
     // tokenId return which marketToken - fetch which one it is
@@ -66,8 +67,22 @@ contract MemeMarketplace is ReentrancyGuard {
         return listingPrice;
     }
 
+    function getCount() public view returns (uint) {
+        return _tokenIds.current();
+    }
+
+    // check the owner of NFTs
+    function getOwner(address nftContract, uint tokenId) public view returns (address) {
+        return IERC721(nftContract).ownerOf(tokenId);
+    }
+
     // check if tokenId exists
-        function isTokenExists(uint256 tokenId) public view returns (bool) {
+    function getSingleMarketToken(uint256 tokenId) public view returns (MarketToken memory) {
+        return idToMarketToken[tokenId];
+    }
+
+        // check if tokenId exists
+    function isTokenExists(uint256 tokenId) public view returns (bool) {
         return idToMarketToken[tokenId].isExist;
     }
 
@@ -86,6 +101,8 @@ contract MemeMarketplace is ReentrancyGuard {
         require(price > 0, 'Price must be at least one wei');
         require(msg.value >= listingPrice, 'transaction value must be equal to listing price');
         uint itemId;
+        // // approve marketplace
+        // IERC721(nftContract).approve(address(this),tokenId); 
         //NFT transaction
         IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
 
@@ -111,7 +128,8 @@ contract MemeMarketplace is ReentrancyGuard {
                 payable(msg.sender),
                 price,
                 false,
-                true           
+                true,
+                block.timestamp          
             );
         }
 
@@ -146,8 +164,8 @@ contract MemeMarketplace is ReentrancyGuard {
         // require(msg.value > listingPrice, 'transaction value must be equal to listing price');
         uint itemId;
         address ownerNow = IERC721(nftContract).ownerOf(tokenId);
-        require(msg.sender == ownerNow, 'You cannot manage this NFTs');
-        require(msg.value >= listingPrice, 'transaction value must be equal to listing price');
+        require(payable(msg.sender) == ownerNow, 'You cannot manage this NFTs');
+        // require(msg.value >= listingPrice, 'transaction value must be equal to listing price');
 
         if (isTokenExists(tokenId)) {
             // this mean token exist in marketplace before
@@ -170,7 +188,8 @@ contract MemeMarketplace is ReentrancyGuard {
                 payable(msg.sender),
                 0,
                 true,
-                true           
+                true,
+                block.timestamp           
             );
         }
 
@@ -207,10 +226,43 @@ contract MemeMarketplace is ReentrancyGuard {
         // transfer the token from contract address to the buyer
         ERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
         idToMarketToken[currTokenId].owner = payable(msg.sender);
+        idToMarketToken[currTokenId].seller = payable(msg.sender);
         idToMarketToken[currTokenId].sold = true;
+        idToMarketToken[currTokenId].price = 0;
         _tokensSold.increment();
 
-        payable(owner).transfer(listingPrice);
+        // payable(owner).transfer(listingPrice);
+
+    }
+
+    // function to cancel NFT listing
+
+    function cancelMarketSale(
+        address nftContract,
+        uint tokenId
+    )
+    public payable nonReentrant {
+
+
+
+
+        // uint price = idToMarketToken[tokenId].price;
+        uint currTokenId = idToMarketToken[tokenId].tokenId;
+
+        // address ownerNow = IERC721(nftContract).ownerOf(tokenId);
+        require(payable(msg.sender) == idToMarketToken[currTokenId].seller, 'You cannot manage this NFTs');
+
+
+        // transfer the token from contract address to the owner back
+        ERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
+        idToMarketToken[currTokenId].owner = payable(msg.sender);
+        idToMarketToken[currTokenId].seller = payable(msg.sender);
+        idToMarketToken[currTokenId].sold = true;
+        idToMarketToken[currTokenId].price = 0;
+        // _tokensSold.increment();
+
+        // transfer back the listing price
+        // idToMarketToken[currTokenId].seller.transfer(listingPrice);
 
     }
 
@@ -219,11 +271,11 @@ contract MemeMarketplace is ReentrancyGuard {
 
     function fetchMarketTokens() public view returns(MarketToken[] memory) {
         uint itemCount = _tokenIds.current();
-        uint unsoldItemCount = itemCount - _tokensSold.current();
+        // uint unsoldItemCount = itemCount - _tokensSold.current();
         uint currentIndex = 0;
 
         // looping over the number of items created (if number has not been sold populate the array)
-        MarketToken[] memory items = new MarketToken[](unsoldItemCount);
+        MarketToken[] memory items = new MarketToken[](itemCount);
         for (uint i=0; i < itemCount; i++) {
             if (idToMarketToken[i + 1].owner == address(0)) {
                 uint currentId = i + 1;
@@ -244,14 +296,25 @@ contract MemeMarketplace is ReentrancyGuard {
         uint currentIndex = 0;
 
         for (uint i = 0; i < totalItemCount; i++) {
-            if(idToMarketToken[i + 1].owner == msg.sender) {
+            if(idToMarketToken[i + 1].owner == msg.sender || idToMarketToken[i + 1].owner == payable(msg.sender)) {
                 itemCount += 1;
             }
         }
 
-        MarketToken[] memory items = new MarketToken[](itemCount);
+        // MarketToken[] memory items = new MarketToken[](itemCount);
+        // for (uint i = 0; i < totalItemCount; i++) {
+        //     if (idToMarketToken[i + 1].owner == msg.sender || idToMarketToken[i + 1].owner == payable(msg.sender)) {
+        //         uint currentId = idToMarketToken[i + 1].itemId;
+        //         // current aray
+        //         MarketToken storage currenItem = idToMarketToken[currentId];
+        //         items[currentIndex] = currenItem;
+        //         currentIndex += 1;
+        //     }
+        // }
+
+        MarketToken[] memory items = new MarketToken[](totalItemCount);
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketToken[i + 1].owner == msg.sender) {
+            if (idToMarketToken[i + 1].owner == msg.sender || idToMarketToken[i + 1].seller == msg.sender) {
                 uint currentId = idToMarketToken[i + 1].itemId;
                 // current aray
                 MarketToken storage currenItem = idToMarketToken[currentId];

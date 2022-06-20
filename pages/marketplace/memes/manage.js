@@ -8,6 +8,7 @@ import { useEthPrice } from '@components/hooks/useEthPrice'
 import {create as ipfsHttpClient} from 'ipfs-http-client'
 import { useRouter } from 'next/router'
 import { useWeb3 } from '@components/provider'
+import { Loader } from "@components/ui/common"
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
@@ -19,7 +20,7 @@ const KeyCodes = {
 // for tags input, define delimiters
 const delimiters = [KeyCodes.comma, KeyCodes.enter];
 
-export default function Manage({memes}) {
+export default function Manage() {
 
     const [selectedMeme, setSelectedMeme] = useState(null)
     const [isMinting, setIsMinting] = useState(false)
@@ -124,25 +125,29 @@ export default function Manage({memes}) {
         .then(async function(receipt){
           console.log(receipt)
           console.log("mint finish")
-          let event = receipt.events.ApprovalForAll
+          let event = receipt.events.Transfer
           console.log(event)
-          let value = event.raw.data
-          tokenId = web3.utils.hexToNumber(value)
+          let value = event.returnValues.tokenId
+          tokenId = parseInt(value)
           console.log(value)
 
           if (onSale) {
-            const price = formInput.price.toString()
+            const price = web3.utils.toWei(formInput.price.toString())
             let listingPrice = await marketContract.methods.getListingPrice().call()
             console.log("ini listing price")
             console.log(listingPrice)
+            // approve first
+            let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
             // listingPrice = web3.utils.toWei(listingPrice.toString())
-            transaction = await marketContract.methods.makeMarketItem(nftContract.options.address, tokenId, price).send({from: account.data, value: listingPrice})
+            let transaction = await marketContract.methods.makeMarketItem(nftContract.options.address, tokenId, price).send({from: account.data, value: listingPrice})
           } else {
             console.log('sempat coba marketContract')
             // const price = formInput.price.toString()
-            let listingPrice = await marketContract.methods.getListingPrice().call()
-            listingPrice = listingPrice.toString()
-            result =  await marketContract.methods.makeMarketItemNonSale(nftContract.options.address, tokenId).send({from: account.data, value: listingPrice})
+            // let listingPrice = await marketContract.methods.getListingPrice().call()
+            // approve first
+            let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
+            // listingPrice = listingPrice.toString()
+            let transaction =  await marketContract.methods.makeMarketItemNonSale(nftContract.options.address, tokenId).send({from: account.data})
             .then(async function(receipt){
            
              })
@@ -151,9 +156,10 @@ export default function Manage({memes}) {
     
           // transaction = await contract.makeMarketItem(nftaddress, tokenId, price, {value: listingPrice})
           // await transaction.wait()
-          // router.push('./')
-          setIsMinting(false)
           
+          
+          router.push('/marketplace/memes/owned')
+          setIsMinting(false)
           // receipt can also be a new contract instance, when coming from a "contract.deploy({...}).send()"
       });
       } catch {
@@ -259,10 +265,16 @@ export default function Manage({memes}) {
                 fileUrl && (
                     <img className='rounded mt-4' width='350px' src={fileUrl} />
                 )}
-                <button onClick={createMarket}
-                className='font-bold mt-4 bg-purple-500 text-white rounded p-4 shadow-lg'
+                <button 
+                disabled={!canPurchaseMeme || isMinting === true}
+                onClick={createMarket}
+                className='font-bold mt-4 bg-purple-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded p-4 shadow-lg'
                 >
-                    Mint NFT
+                  { isMinting ?
+                    <div className="w-full flex justify-center m-1">
+                      <Loader/>
+                    </div> : <div className='m-1'>Mint Meme</div>
+                  }
                 </button>
             </div>
         </div>

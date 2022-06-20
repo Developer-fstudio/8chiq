@@ -1,13 +1,15 @@
 
 import axios from 'axios'
 
-export async function getAllMemes(web3, nftContract, marketContract, address) {
+export async function getOwnedMemes(web3, nftContract, marketContract, address) {
 
 
-  // console.log('masuk ke get data')
-  // console.log(marketContract.methods)
-  const data = await marketContract.methods.fetchMarketAllTokens().call()
-  console.log("data all market")
+  console.log('address')
+  console.log(address.data)
+  let data = await marketContract.methods.fetchMyNFTs().call({from: address.data})
+  // console.log("data all market")
+  data = data.filter(item => item.isExist)
+  console.log("fetch my nft")
   console.log(data)
   const items = await Promise.all(data.map(async i => {
     // console.log('masuk sini ga sih')
@@ -29,7 +31,7 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
     let dateNow = new Date()
     let dateCreate = new Date(Number(i.timeCreated+"000"))
 
-    let Difference_In_Time = dateNow.getTime() - dateCreate.getTime()
+    let Difference_In_Time = dateNow.getTime() - dateCreate.getTime()    
 
     // calculate in minutes first
     let Difference_In_minutes = Math.round(Difference_In_Time / (1000 * 60))
@@ -50,7 +52,6 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
 
     }
 
-   
     let item = {
       price,
       id: i.tokenId,
@@ -64,6 +65,7 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
       dislike: "102",
       age: usedTime,
       comment: "297",
+      sold : i.sold,
       description: meta.data.description
     }
     return item

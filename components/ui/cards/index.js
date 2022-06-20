@@ -53,9 +53,9 @@ export default function Card({meme}) {
                 meme.tags.map((tag, i) => <span key={i} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-600 mr-2 mb-2">{tag}</span>)
             }
         </div> */}
-        <div className='px-4 pb-5'>
-          <button className="inline-block bg-purple-500 rounded-md px-6 py-1 font-bold text-white mr-2 mb-2">Buy</button>
-        </div>
+        {/* <div className='px-4 pb-5'>
+          <button disabled={(!canPurchaseMeme || !meme.onSale)} className="inline-block bg-purple-500 rounded-md px-6 py-1 font-bold text-white mr-2 mb-2">Buy</button>
+        </div> */}
       </div>
     )
   }

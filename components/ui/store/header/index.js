@@ -10,7 +10,7 @@ const LINKS = [{
   value: "My Memes"
 }, {
   href: "/marketplace/memes/manage",
-  value: "Manage Memes"
+  value: "Mint Meme"
 }]
 
 

@@ -1,18 +1,24 @@
 
 import axios from 'axios'
 
-export async function getAllMemes(web3, nftContract, marketContract, address) {
+export async function getOnSaleMemes(web3, nftContract, marketContract, address) {
 
 
-  // console.log('masuk ke get data')
+  console.log('masuk ke getOnSaleMemes')
   // console.log(marketContract.methods)
-  const data = await marketContract.methods.fetchMarketAllTokens().call()
-  console.log("data all market")
+  let data = await marketContract.methods.fetchMarketTokens().call()
+  // console.log("data all market")
+  console.log("fetch my nft")
   console.log(data)
+  // filter for exist item only
+  data = data.filter(item => item.isExist)
   const items = await Promise.all(data.map(async i => {
     // console.log('masuk sini ga sih')
     // console.log(i)
+    
     const tokenUri = await nftContract.methods.tokenURI(i.tokenId).call()
+    console.log('token URI')
+    console.log(tokenUri)
     // we want get the token metadata - json 
     const meta = await axios.get(tokenUri)
     let price
@@ -24,6 +30,8 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
     console.log(`ini address ${address.data}`)
     console.log(`ini owner ${i.owner}`)
     console.log(`sama ga mereka? ${(address.data === i.seller)}`)
+    console.log(`token nya apa ${i.tokenId}`)
+    console.log(meta)
 
     // start of calculating time to show
     let dateNow = new Date()
@@ -50,7 +58,6 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
 
     }
 
-   
     let item = {
       price,
       id: i.tokenId,
@@ -66,6 +73,7 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
       comment: "297",
       description: meta.data.description
     }
+    console.log(item)
     return item
   }))
   console.log('ada dong datanya sih')

@@ -6,6 +6,8 @@ import { MemeList, MemeCard } from '@components/ui'
 import { BaseLayout } from '@components/ui/layout'
 import { useWeb3 } from '@components/provider'
 import {useEffect, useState} from 'react'
+import { useWalletInfo } from '@components/hooks/web3'
+import { Loader } from "@components/ui/common"
 
 
 export default function Home() {
@@ -13,6 +15,7 @@ export default function Home() {
   const [memes, setMemes] = useState([])
   const { web3, isLoading, nftContract, marketContract } = useWeb3()
   const [loadingState, setLoadingState] = useState('not-loaded')
+  const { account, network, canPurchaseMeme } = useWalletInfo()
 
   // console.log(marketContract)
   // console.log(nftContract)
@@ -28,7 +31,7 @@ export default function Home() {
   }, [isLoading])
 
   async function loadNFTs() {
-    const { data } = await getAllMemes(web3, nftContract, marketContract)
+    const { data } = await getAllMemes(web3, nftContract, marketContract, account)
     setMemes(data)
     console.log('masuk sini')
     console.log(memes)
@@ -47,21 +50,26 @@ export default function Home() {
       </Head>
         {/* recent properties section */}
 
-       
-        {/* cards section */}
-        <MemeList memes={memes}>
+        {  (loadingState === 'loaded' && !memes.length) ? <h1
+           className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> : 
+           loadingState === 'not-loaded' ? 
+            <div className="w-full flex justify-center fixed z-10 inset-0 overflow-y-auto">
+              <Loader/>
+            </div> :
+            <MemeList memes={memes}>
 
-          {/* Memes Cards */}
+              {/* Memes Cards */}
 
-          {meme =>
-        <MemeCard
-          key={meme.id}
-          meme={meme}
-        />
-      }
+              {meme =>
+            <MemeCard
+              key={meme.id}
+              meme={meme}
+            />
+            }
 
 
-        </MemeList>
+            </MemeList>
+        }
         {/* end cards section */}
 
 

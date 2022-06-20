@@ -1,7 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
 
-export default function MemeDetail({meme}) {
+export default function MemeDetail({meme, canPurchaseMeme, Footer}) {
+
+
+    console.log(`the meme : ${meme}`)
     return (
       <div className="grid p-10 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-5 max-w-4xl mx-auto">
         <div className='rounded overflow-hidden shadow-md'>
@@ -41,19 +44,20 @@ export default function MemeDetail({meme}) {
           </div>
 
           {/* end like, dislike, part */}
-
+          {/* src={`${meme.img}`} */}
+          {meme.img && 
           <div className="w-full pb-4">
-              <Image width="100%" height="100%" layout="responsive" objectFit="contain" src={`${meme.img}`} alt=""/>
+            <Image width="100%" height="100%" layout="responsive" objectFit="contain" src={`${meme.img}`} alt=""/>
           </div>
+          }
+          
 
-          <div className='px-4 pb-2'>
+          {/* <div className='px-4 pb-2'>
               {
                   meme.tags.map((tag, i) => <span key={i} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-600 mr-2 mb-2">{tag}</span>)
               }
-          </div>
-          <div className='px-4 pb-5'>
-            <button class="inline-block bg-purple-500 rounded-md px-6 py-1 font-bold text-white mr-2 mb-2">Buy</button>
-          </div>
+          </div> */}
+          <Footer/>
         </div>
       </div>
 
