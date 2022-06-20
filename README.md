@@ -8,7 +8,20 @@
 
 ## Getting Started
 
-First, migrate the contract using truffle:
+First, configure the network, in _truffle-config.js_ :
+
+```bash
+  # if you are using local Ganache, adjust port accordingly
+  networks: {
+    development: {
+     host: "127.0.0.1",     // Localhost (default: none)
+     port: 7545,            // Standard Ethereum port (default: none)
+     network_id: "*",       // Any network (default: none)
+    }
+  }
+```
+
+then, migrate the contract using truffle:
 
 ```bash
 truffle migrate
