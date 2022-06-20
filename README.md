@@ -36,10 +36,10 @@ yarn dev
 | Activate comment function | ONPROGRESS |
 | Contract use Testnet | ONPROGRESS |
 
-## Dependencies
+## Tools
 
-- Install Truffle
-- Ganache (Optional)
+- Truffle
+- Ganache
 - Next JS
 - Tailwind
 
