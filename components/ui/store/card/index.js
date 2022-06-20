@@ -45,11 +45,11 @@ export default function StoreCard({meme, Footer, disabled}) {
         </div>
 
         </div>
-        <div className='px-4 pb-2'>
+        {/* <div className='px-4 pb-2'>
             {
                 meme.tags.map((tag, i) => <span key={i} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-600 mr-2 mb-2">{tag}</span>)
             }
-        </div>
+        </div> */}
         <Footer/>
       </div>
     )

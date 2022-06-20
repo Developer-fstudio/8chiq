@@ -9,6 +9,7 @@ const NETWORKS = {
     80001: "Polygon Mumbai Test Network",
     137: "Polygon Network",
     56: "Binance Smart Network",
+    1337: "Ganache"
 }
 
 const targetNetwork = NETWORKS[process.env.NEXT_PUBLIC_TARGET_CHAIN_ID]

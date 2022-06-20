@@ -1,21 +1,55 @@
 import Head from 'next/head'
-import { getAllMemes } from "@content/fetcher"
 import { BaseLayout } from '@components/ui/layout'
 import { useWalletInfo } from '@components/hooks/web3'
 import { MarketHeader, StoreCard, StoreList } from '@components/ui/store'
-import { useState } from 'react'
 import { OrderModal } from '@components/ui/order'
 import { useEthPrice } from '@components/hooks/useEthPrice'
+import { useWeb3 } from '@components/provider'
+import {useEffect, useState} from 'react'
+import { buyNFT } from '@utils/buyNFT'
+import { getOnSaleMemes } from '@content/fetcherOnSale'
+import Image from "next/image"
+import { Loader } from "@components/ui/common"
 
 
-export default function Marketplace({memes}) {
+export default function Marketplace() {
 
     const [selectedMeme, setSelectedMeme] = useState(null)
     const { account, network, canPurchaseMeme } = useWalletInfo()
     const { eth } = useEthPrice()
+    const { web3, isLoading, nftContract, marketContract } = useWeb3()
+    const [memes, setMemes] = useState([])
+    const [loadingState, setLoadingState] = useState('not-loaded')
+  
 
-    const purchaseCourse = (order) => {
-      alert(JSON.stringify(order))
+    useEffect(()=> {
+      if (!isLoading) {
+        console.log(marketContract)
+        console.log(nftContract)
+        loadNFTs()
+      } 
+    }, [isLoading, canPurchaseMeme, account.data])
+
+
+    async function loadNFTs() {
+      const { data } = await getOnSaleMemes(web3, nftContract, marketContract, account)
+      setMemes(data)
+      console.log('masuk sini')
+      console.log(memes)
+      setLoadingState('loaded')
+    }
+
+    const purchaseMeme = async (order, tokenId) => {
+      // alert(JSON.stringify(order))
+      setSelectedMeme(null)
+      setLoadingState('buying')
+      const { data } = await buyNFT(web3, nftContract, marketContract, account, tokenId, order.price)
+      console.log('purchased')
+      console.log(data)
+      setLoadingState('loaded')
+      loadNFTs()
+
+
     }
 
     
@@ -39,38 +73,55 @@ export default function Marketplace({memes}) {
 
 
         {/* recent properties section */}
+        {  (loadingState === 'loaded' && !memes.length) ? <h1
+           className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> : 
+            loadingState === 'not-loaded' ? 
+            <div className="w-full flex justify-center">
+              <Loader/>
+            </div> :
+            <StoreList memes={memes}>
 
-       
-        {/* cards section */}
-        <StoreList memes={memes}>
+              {/* Memes Cards */}
 
-          {/* Memes Cards */}
+                {meme =>
+                  <StoreCard
+                    key={meme.id}
+                    meme={meme}
+                    disabled={!canPurchaseMeme}
+                    Footer = { () =>
+                      <div className='inline-block px-4 pb-5 content-end'>
+                        <div className='font-medium text-base mb-2 flex items-center'>
+                          <Image
+                            layout="fixed"
+                            height="25"
+                            width="25"
+                            src="/static/images/small-eth.webp"
+                          />
+                          {meme.price} Eth 
+                        </div>
+                        <button 
+                          onClick= {() => setSelectedMeme(meme)}
+                          className="inline-block bg-purple-500 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md px-6 py-1 font-bold text-white mr-2 mb-2"
+                          disabled={(!canPurchaseMeme || meme.onSale === false || loadingState === "buying")}
+                          >
+                          { loadingState === "buying" ?
+                            <div className="w-full flex justify-center m-1">
+                              <Loader/>
+                            </div> : <div className='m-1'>Buy</div>
+                          }
+                        </button>
+                      </div>
+                    }
+                  />
+              }
+          </StoreList>
+           }
+        
 
-          {meme =>
-        <StoreCard
-          key={meme.id}
-          meme={meme}
-          disabled={!canPurchaseMeme}
-          Footer = { () =>
-            <div className='inline-block px-4 pb-5 content-end'>
-              <button 
-                onClick= {() => setSelectedMeme(meme)}
-                className="inline-block bg-purple-500 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md px-6 py-1 font-bold text-white mr-2 mb-2"
-                disabled={!canPurchaseMeme}
-                >
-                  Buy
-              </button>
-            </div>
-          }
-        />
-      }
-
-
-        </StoreList>
 
         { selectedMeme &&
         <OrderModal
-          onSubmit={purchaseCourse}
+          onSubmit={purchaseMeme}
           meme={selectedMeme}
           onClose={() => setSelectedMeme(null)}
         />
@@ -82,14 +133,15 @@ export default function Marketplace({memes}) {
   )
 }
 
-export function getStaticProps({params}) {
-  const { data } = getAllMemes()
+// export function getStaticProps({params}) {
+//   const { web3, nftContract, marketContract } = useWeb3()
+//   const { data } = await getAllMemes( web3, nftContract, marketContract)
   
-  return {
-    props: {
-      memes: data
-    }
-  }
-}
+//   return {
+//     props: {
+//       memes: data
+//     }
+//   }
+// }
 
 Marketplace.Layout = BaseLayout
