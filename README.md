@@ -1,5 +1,5 @@
 
-# ![favicon-32x32](https://user-images.githubusercontent.com/19762585/174510071-6758e22d-76c8-493e-a5fe-7f9aa8ae0648.png) This is a **9Chiq**, a 9gag clone using blockchain & NFT as a backend
+# ![favicon-32x32](https://user-images.githubusercontent.com/19762585/174510071-6758e22d-76c8-493e-a5fe-7f9aa8ae0648.png) This is a **8Chiq**, a 9gag clone using blockchain & NFT as a backend
 
 <br>
 
