@@ -29,6 +29,12 @@ truffle migrate
 truffle migrate --reset
 ```
 
+Install all dependencies:
+
+```bash
+npm install
+```
+
 then, run the development server:
 
 ```bash
