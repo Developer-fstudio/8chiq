@@ -1,8 +1,41 @@
-This is a **9Chiq**, a 9gag clone using blockchain & NFT as a backend.
+
+# ![favicon-32x32](https://user-images.githubusercontent.com/19762585/174510071-6758e22d-76c8-493e-a5fe-7f9aa8ae0648.png) This is a **8Chiq**, a 9gag clone using blockchain & NFT as a backend
+
+<br>
+
+![display example](https://user-images.githubusercontent.com/19762585/174509955-a81d7981-48a3-41a1-b7a2-f627234b579d.png)
+
 
 ## Getting Started
 
-First, run the development server:
+First, configure the network, in _truffle-config.js_ :
+
+```bash
+  # if you are using local Ganache, adjust port accordingly
+  networks: {
+    development: {
+     host: "127.0.0.1",     // Localhost (default: none)
+     port: 7545,            // Standard Ethereum port (default: none)
+     network_id: "*",       // Any network (default: none)
+    }
+  }
+```
+
+then, migrate the contract using truffle:
+
+```bash
+truffle migrate
+# or do this if previously alredy run and do some modification to contract, just in case
+truffle migrate --reset
+```
+
+Install all dependencies:
+
+```bash
+npm install
+```
+
+then, run the development server:
 
 ```bash
 npm run dev
@@ -10,10 +43,23 @@ npm run dev
 yarn dev
 ```
 
-## Details
+## Details Features
 
-Still on progress
+| Features | Status | 
+| --- | :---: |
+| Minting Meme NFT | DONE |
+| Sell the Meme on the Marketplace | DONE |
+| Buy the Meme on the Marketplace | DONE |
+| Cancel listing on the Marketplace | DONE |
+| Activate likes and dislikes button function | ONPROGRESS |
+| Activate comment function | ONPROGRESS |
+| Contract use Testnet | ONPROGRESS |
 
-## Deployment
+## Tools
+
+- Truffle
+- Ganache
+- Next JS
+- Tailwind
 
 Still on progress.
