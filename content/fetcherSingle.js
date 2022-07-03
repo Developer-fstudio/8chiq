@@ -19,6 +19,13 @@ export async function getSingleMeme(web3, nftContract, marketContract, address, 
       price = web3.utils.fromWei(data.price.toString(), 'ether')
     }
 
+    // start of calculating time to show
+    let dateNow = new Date()
+    let dateCreate = new Date(Number(data.timeCreated+"000"))
+    
+
+    let Difference_In_Time = dateNow.getTime() - dateCreate.getTime()
+
     // calculate in minutes first
     let Difference_In_minutes = Math.round(Difference_In_Time / (1000 * 60))
     let usedTime = `${Difference_In_minutes}m`

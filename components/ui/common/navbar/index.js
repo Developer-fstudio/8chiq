@@ -7,6 +7,8 @@ import ActiveLink from '../link'
 import ActiveLinkNav from '../linknav'
 
 
+
+
 export default function Navbar() {
     const { connect, web3, isLoading, requireInstall } = useWeb3()
     const { account } = useAccount()
@@ -49,7 +51,12 @@ export default function Navbar() {
 
                         <div className='flex right-0 items-center space-x-2'>
                         <SearchBox />
-                        <button type="button" className="py-2.5 px-3 lg:px-5 mr-2 lg:text-sm text-xs font-medium text-gray-900 focus:outline-none bg-white rounded-md border border-purple-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-purple-700 dark:text-gray-200 dark:border-purple-600 dark:hover:text-white dark:hover:bg-gray-700">Sign In</button>
+                        {/* <button 
+                            type="button" 
+                            className="py-2.5 px-3 lg:px-5 mr-2 lg:text-sm text-xs font-medium text-gray-900 focus:outline-none bg-white rounded-md border border-purple-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-purple-700 dark:text-gray-200 dark:border-purple-600 dark:hover:text-white dark:hover:bg-gray-700">
+                                Sign In
+                        </button> */}
+                        
                         { isLoading ? 
                             <CustomeButton 
                                 variant="blue"

@@ -1,12 +1,20 @@
 import Image from "next/image"
 import Link from "next/link"
 
+const logoMap = {
+  "Funny" : "/static/images/icons8-crazy-96.png",
+  "Anime" : "/static/images/icons8-naruto-96.png",
+  "Blockchain" : "/static/images/icons8-blockchain-digital-64.png",
+  "Cat" : "/static/images/icons8-cat-64.png",
+  "Chiq" : "/static/images/android-chrome-192x192.png"
+}
+
 export default function Card({meme}) {
     return (
         <div className='rounded overflow-hidden shadow-md'>
         <div className='flex items-center px-4 py-2'>
           <a className='flex items-center' href=''>
-            <img className='w-6 h-6 mr-2' src="/static/images/icons8-crazy-96.png" alt=""></img>
+            <img className='w-6 h-6 mr-2' src={logoMap[meme.category]} alt=""></img>
             <p className='text-gray-500 text-xs'>{meme.category}</p>
           </a>
           <p className='text-gray-500 text-xs ml-1'>{meme.age}</p>

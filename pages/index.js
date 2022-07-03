@@ -53,7 +53,7 @@ export default function Home() {
         {  (loadingState === 'loaded' && !memes.length) ? <h1
            className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> : 
            loadingState === 'not-loaded' ? 
-            <div className="w-full flex justify-center fixed z-10 inset-0 overflow-y-auto">
+            <div className="w-full flex justify-center">
               <Loader/>
             </div> :
             <MemeList memes={memes}>

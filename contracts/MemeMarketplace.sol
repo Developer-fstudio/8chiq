@@ -15,6 +15,7 @@ contract MemeMarketplace is ReentrancyGuard {
 
     Counters.Counter private _tokenIds;
     Counters.Counter private _tokensSold;
+    uint256 totalEthSold = 0;
 
     // determine who is the owner of the contract
     // charge a listing fee so the owner makes a commission
@@ -28,6 +29,19 @@ contract MemeMarketplace is ReentrancyGuard {
     constructor() {
         //set the owner
         owner = payable(msg.sender);
+    }
+    // structs to hold the comments
+    struct Comment {
+        address addr;
+        string comment;
+    }
+
+    // comment, likes and dislikes
+    struct TokenLikesComment {
+        uint itemId;
+        mapping(address => bool) addToLike;
+        mapping(address => bool) addToDislike;
+        Comment[] comments;
     }
 
     // structs can act like objects
@@ -43,13 +57,19 @@ contract MemeMarketplace is ReentrancyGuard {
         bool sold;
         bool isExist;
         uint timeCreated;
+        uint likes;
+        uint dislikes;
     }
 
     // tokenId return which marketToken - fetch which one it is
 
     mapping(uint256 => MarketToken) private idToMarketToken;
 
-    // listen to events from front end applications
+    // tokenId to token likes dislike comment
+
+    mapping(uint256 => TokenLikesComment) private idToTokenLikes;
+
+    // listen to events for front end applications
     event MarketTokenMinted(
         uint indexed itemId,
         address indexed nftContract,
@@ -62,9 +82,26 @@ contract MemeMarketplace is ReentrancyGuard {
         bool isExist
     );
 
+    // listen to events of socials for front end applications
+    event TokenSocialEvent(
+        uint indexed itemId,
+        uint likes,
+        uint dislikes
+    );
+
     // get the listing price
     function getListingPrice() public view returns (uint256) {
         return listingPrice;
+    }
+
+    // get the total sold
+    function getTotalSoldCount() public view returns (uint256) {
+        return _tokensSold.current();
+    }
+
+    // get the total sold in currency
+    function getTotalSold() public view returns (uint256) {
+        return totalEthSold;
     }
 
     function getCount() public view returns (uint) {
@@ -81,10 +118,61 @@ contract MemeMarketplace is ReentrancyGuard {
         return idToMarketToken[tokenId];
     }
 
-        // check if tokenId exists
+    // check if tokenId exists
     function isTokenExists(uint256 tokenId) public view returns (bool) {
         return idToMarketToken[tokenId].isExist;
     }
+
+    // function to return all comments
+    function getComments(uint tokenId) public view returns (Comment[] memory) {
+        return idToTokenLikes[tokenId].comments;
+    }
+
+    // create function to like a meme
+    function likeMeme(uint tokenId) public payable nonReentrant {
+        MarketToken storage m = idToMarketToken[tokenId];
+        TokenLikesComment storage mLike = idToTokenLikes[tokenId];
+        if (mLike.addToLike[msg.sender] == true) {
+            return;
+        } else {
+            mLike.addToLike[msg.sender] = true;
+            m.likes+=1;
+            if (mLike.addToDislike[msg.sender] == true) {
+                m.dislikes-=1;
+                mLike.addToDislike[msg.sender] = false;
+            }
+        }
+        
+        // it is a good practice to emit event after modifying value transaction
+        emit TokenSocialEvent(tokenId, m.likes, m.dislikes);
+    }
+
+    // create function to dislike a meme
+    function dislikeMeme(uint tokenId) public payable nonReentrant {
+        MarketToken storage m = idToMarketToken[tokenId];
+        TokenLikesComment storage mLike = idToTokenLikes[tokenId];
+        if (mLike.addToDislike[msg.sender] == true) {
+            return;
+        } else {
+            mLike.addToDislike[msg.sender] = true;
+            m.dislikes+=1;
+            if (mLike.addToLike[msg.sender] == true) {
+                m.likes-=1;
+                mLike.addToLike[msg.sender] = false;
+            }
+        }
+
+        // it is a good practice to emit event after modifying value transaction
+        emit TokenSocialEvent(tokenId, m.likes, m.dislikes);
+    }
+
+    // create function to adda comment
+    function commentMeme(uint tokenId, string calldata comment) public payable nonReentrant {
+        TokenLikesComment storage mLike = idToTokenLikes[tokenId];
+        mLike.comments.push(Comment(msg.sender, comment));
+    }
+
+
 
     // two functios to interact with contract
     // 1. create a market item to put it up for sale
@@ -119,18 +207,29 @@ contract MemeMarketplace is ReentrancyGuard {
             itemId = _tokenIds.current();
 
             //putting it up for sale - bool - no owner
-            idToMarketToken[tokenId] = MarketToken(
-                itemId,
-                nftContract,
-                tokenId,
-                payable(msg.sender),
-                payable(address(0)),
-                payable(msg.sender),
-                price,
-                false,
-                true,
-                block.timestamp          
-            );
+            MarketToken storage m = idToMarketToken[tokenId];
+            m.itemId = itemId;
+            m.nftContract = nftContract;
+            m.tokenId = tokenId;
+            m.seller = payable(msg.sender);
+            m.owner = payable(address(0));
+            m.minter = payable(msg.sender);
+            m.price = price;
+            m.sold = false;
+            m.isExist = true;
+            m.timeCreated = block.timestamp;
+            // idToMarketToken[tokenId] = MarketToken(
+            //     itemId,
+            //     nftContract,
+            //     tokenId,
+            //     payable(msg.sender),
+            //     payable(address(0)),
+            //     payable(msg.sender),
+            //     price,
+            //     false,
+            //     true,
+            //     block.timestamp          
+            // );
         }
 
 
@@ -178,19 +277,32 @@ contract MemeMarketplace is ReentrancyGuard {
             _tokenIds.increment();
             itemId = _tokenIds.current();
 
+            // referencing differently because of mapping inside struct
+            MarketToken storage m = idToMarketToken[tokenId];
+            m.itemId = itemId;
+            m.nftContract = nftContract;
+            m.tokenId = tokenId;
+            m.seller = payable(msg.sender);
+            m.owner = payable(msg.sender);
+            m.minter = payable(msg.sender);
+            m.price = 0;
+            m.sold = true;
+            m.isExist = true;
+            m.timeCreated = block.timestamp;
+
             //putting it up for sale - bool - no owner
-            idToMarketToken[tokenId] = MarketToken(
-                itemId,
-                nftContract,
-                tokenId,
-                payable(msg.sender),
-                payable(msg.sender),
-                payable(msg.sender),
-                0,
-                true,
-                true,
-                block.timestamp           
-            );
+            // idToMarketToken[tokenId] = MarketToken(
+            //     itemId,
+            //     nftContract,
+            //     tokenId,
+            //     payable(msg.sender),
+            //     payable(msg.sender),
+            //     payable(msg.sender),
+            //     0,
+            //     true,
+            //     true,
+            //     block.timestamp           
+            // );
         }
 
 
@@ -225,11 +337,13 @@ contract MemeMarketplace is ReentrancyGuard {
 
         // transfer the token from contract address to the buyer
         ERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
+        _tokensSold.increment();
+        totalEthSold += price;
         idToMarketToken[currTokenId].owner = payable(msg.sender);
         idToMarketToken[currTokenId].seller = payable(msg.sender);
         idToMarketToken[currTokenId].sold = true;
         idToMarketToken[currTokenId].price = 0;
-        _tokensSold.increment();
+
 
         // payable(owner).transfer(listingPrice);
 

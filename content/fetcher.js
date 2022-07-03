@@ -50,7 +50,13 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
 
     }
 
-   
+    let like = "0";
+    let dislike = "0";
+
+    // get the like and dislike data
+
+
+    
     let item = {
       price,
       id: i.tokenId,
@@ -60,14 +66,17 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
       title: meta.data.name,
       category: meta.data.category,
       onSale : (!i.sold && !(address.data === i.seller)),
-      like: "519",
-      dislike: "102",
+      like: like,
+      dislike: dislike,
       age: usedTime,
       comment: "297",
       description: meta.data.description
     }
     return item
   }))
+
+
+  
   console.log('ada dong datanya sih')
   console.log(items)
   const count = await marketContract.methods.getCount().call()

@@ -9,6 +9,7 @@ import {create as ipfsHttpClient} from 'ipfs-http-client'
 import { useRouter } from 'next/router'
 import { useWeb3 } from '@components/provider'
 import { Loader } from "@components/ui/common"
+import axios from 'axios'
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
@@ -106,6 +107,8 @@ export default function Manage() {
       try {
           const added = await client.add(data)
           const url = `https://ipfs.infura.io/ipfs/${added.path}`
+          
+
           // run a function that creates sale and passes in the url 
           createSale(url)
           } catch (error) {
@@ -129,6 +132,8 @@ export default function Manage() {
           console.log(event)
           let value = event.returnValues.tokenId
           tokenId = parseInt(value)
+          //test for posting to firebase
+        
           console.log(value)
 
           if (onSale) {
@@ -156,6 +161,7 @@ export default function Manage() {
     
           // transaction = await contract.makeMarketItem(nftaddress, tokenId, price, {value: listingPrice})
           // await transaction.wait()
+          
           
           
           router.push('/marketplace/memes/owned')

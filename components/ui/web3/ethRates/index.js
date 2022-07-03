@@ -1,10 +1,29 @@
 import { MEME_PRICE, useEthPrice } from "@components/hooks/useEthPrice"
 import { Loader } from "@components/ui/common"
 import Image from "next/image"
+import { useWeb3 } from '@components/provider'
+import {useEffect, useState} from 'react'
 
 export default function EthRates() {
 
   const { eth } = useEthPrice()
+  const { web3, isLoading, nftContract, marketContract } = useWeb3()
+  const [salesCount, setSalesCount] = useState("0")
+  
+  
+  useEffect(()=> {
+    if (!isLoading) {
+      console.log(marketContract)
+      // console.log(nftContract)
+      loadTotalSales()
+    } 
+  }, [isLoading])
+
+
+  async function loadTotalSales() {
+    let count = await marketContract.methods.getTotalSoldCount().call()
+    setSalesCount(count)
+  }
 
     return (
       <div className="pt-4 mx-4 grid xl:grid-cols-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
@@ -32,19 +51,19 @@ export default function EthRates() {
         <div className="flex flex-1 items-stretch text-center mb-5">
           <div className="px-8 py-10 md:p-10  border drop-shadow rounded-md">
             <div className="flex items-center">
-              { eth.data ? 
+              { !isLoading ? 
                 <>
                   <span className="text-base lg:text-xl xl:text-2xl font-bold">
-                      {eth.pricePerItem} 
+                      {salesCount} 
                   </span>
-                    <Image
+                    {/* <Image
                     layout="fixed"
                     height="35"
                     width="35"
                     src="/static/images/small-eth.webp"
-                    />
+                    /> */}
                   <span className="text-base lg:text-xl xl:text-2xl font-bold">
-                      = ${MEME_PRICE}$
+                    Meme(s) Sold
                   </span>
                 </> : 
                 <div className="w-full flex justify-center">
@@ -52,7 +71,7 @@ export default function EthRates() {
                 </div>
               }             
             </div>
-            <p className="pt-2 text-lg xl:text-xl text-gray-500">Price per Meme</p>
+            <p className="pt-2 text-lg xl:text-xl text-gray-500">Total Sales</p>
           </div>
         </div>
       </div>
