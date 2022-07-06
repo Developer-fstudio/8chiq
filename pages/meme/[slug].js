@@ -10,15 +10,22 @@ import {useEffect, useState} from 'react'
 import { useRouter } from 'next/router'
 import { buyNFT } from '@utils/buyNFT'
 import { OrderModal } from '@components/ui/order'
-import { Loader } from "@components/ui/common"
+import { CommentList, CommmentInput, Loader } from "@components/ui/common"
+import { likeMeme } from '@utils/likeMeme'
+import { dislikeMeme } from '@utils/dislikeMeme'
+import CommentCustom from '@components/ui/common/comment'
+import { getComments } from '@content/getComments'
+
 
 export default function Meme() {
 
   const { account, network, canPurchaseMeme } = useWalletInfo()
   const { web3, isLoading, nftContract, marketContract } = useWeb3()
   const [meme, setMeme] = useState({})
+  const [comments, setComments] = useState({})
   const [isBuy, setBuy] = useState(false)
   const [loadingState, setLoadingState] = useState('not-loaded')
+  const [commentState, setcommentState] = useState('not-loaded')
   const router = useRouter()
   const { slug } = router.query
 
@@ -31,10 +38,24 @@ export default function Meme() {
     } 
   }, [isLoading, canPurchaseMeme, account.data])
 
+  useEffect(()=> {
+    if (loadingState === "loaded") {
+      loadComment()
+    } 
+  }, [meme])
+
   async function loadNFT() {
     const { data } = await getSingleMeme(web3, nftContract, marketContract, account, slug)
     setMeme(data)
+    console.log('load NFT')
     setLoadingState('loaded')
+  }
+
+  async function loadComment() {
+    const { data } = await getComments(marketContract, account.data, meme.id)
+    setComments(data)
+    console.log('load comment')
+    setcommentState('loaded')
   }
 
   const purchaseMeme = async (order, tokenId) => {
@@ -48,6 +69,29 @@ export default function Meme() {
     setLoadingState('loaded')
     // setBuy(false)
   }
+
+  const likeOrDislike = async (tokenId, like = true) => {
+    // alert(JSON.stringify(order))
+    setLoadingState('liking')
+    console.log('masuk like or dislike')
+    console.log(marketContract)
+    const test = await getLikeStatus(tokenId)
+    if (like) {
+
+      const { data } = await likeMeme(marketContract, account, tokenId)
+
+    } else {
+
+      const { data } = await dislikeMeme(marketContract, account, tokenId)
+      
+    }
+    setLoadingState('loaded')
+    loadNFT()
+  }
+
+  async function getLikeStatus(tokenId) {
+    return await marketContract.methods.getLikeStatus(tokenId).call()
+  }  
 
   if(loadingState === 'loaded' && meme === {}) return (<h1
     className='px-20 py-7 text-4x1'>No NFts in marketplace</h1>)
@@ -73,8 +117,11 @@ export default function Meme() {
              <Loader/>
            </div> :    
           <MemeDetail 
-            meme={meme} 
-            canPurchaseMeme={canPurchaseMeme}
+            meme={meme}
+            disabledButton={(!canPurchaseMeme || loadingState === "liking" || isLoading)}
+            onClickButton={() => likeOrDislike(meme.id)}
+            onClickDislikeButton={() => likeOrDislike(meme.id, false)}
+            loadingStateButton={loadingState}             
             Footer = { () => 
               <div className='px-4 pb-5'>
               <div className='font-medium text-base mb-2 flex items-center'>
@@ -107,6 +154,33 @@ export default function Meme() {
             onClose={() => setBuy(false)}
           />
         }
+
+        <CommmentInput
+        tokenId={meme.id}
+        onFinish={()=> loadComment()}/>
+
+        <div className='max-w-4xl mx-auto text-xl text-gray-900 pl-10'>Comments</div>
+
+        {  (commentState === 'loaded' && !comments.length) ? <h1
+            className='max-w-4xl mx-auto text-2xl text-gray-900 p-10'>No one comment yet</h1> : 
+            commentState === 'not-loaded' ? 
+              <div className="w-full flex justify-center">
+                <Loader/>
+              </div> :
+              <CommentList comments={comments}>
+
+                {/* Memes Cards */}
+
+                {comment =>
+                  <CommentCustom
+                    key={comment.id}
+                    comment={comment}
+                  />
+                }
+
+
+              </CommentList>
+          }
 
 
         

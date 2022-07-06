@@ -1,5 +1,9 @@
 import Image from "next/image"
 import Link from "next/link"
+import { useWeb3 } from '@components/provider'
+import { useWalletInfo } from '@components/hooks/web3'
+import {useEffect, useState} from 'react'
+import { Loader } from "@components/ui/common"
 
 const logoMap = {
   "Funny" : "/static/images/icons8-crazy-96.png",
@@ -9,7 +13,26 @@ const logoMap = {
   "Chiq" : "/static/images/android-chrome-192x192.png"
 }
 
-export default function MemeDetail({meme, canPurchaseMeme, Footer}) {
+export default function MemeDetail({meme, Footer, disabledButton, onClickButton, onClickDislikeButton, loadingStateButton}) {
+
+  const { isLoading, marketContract } = useWeb3()
+  const { account } = useWalletInfo()
+
+
+  const [likeStatus, setLikeStatus] = useState(2)
+
+  useEffect(()=> {
+    if (!isLoading) {
+      getLikeStatus(meme.id)
+    } 
+  }, [isLoading, loadingStateButton])
+
+  async function getLikeStatus(tokenId) {
+    const status = await marketContract.methods.getLikeStatus(tokenId).call({from: account.data})
+    setLikeStatus(status)
+    console.log("like status :")
+    console.log(status)
+  }
 
 
     console.log(`the meme : ${meme}`)
@@ -29,14 +52,28 @@ export default function MemeDetail({meme, canPurchaseMeme, Footer}) {
           {/* start like, dislike, part */}
           <div className='flex px-4 pb-2 justify-between'>
           <div className='flex'>
-            <button className="inline-block rounded-lg px-4 py-1 font-bold text-green-500 md:text-md text-xs sm:text-sm mr-2 mb-2 border-2 border-green-400 flex items-center">
-              <img className='w-4 h-4 md:w-6 md:h-6 mr-2' src="/static/images/thumb_up_purple_wght400.svg" alt=""></img>
-              {meme.like}
+          <button 
+            className={`inline-block rounded-lg px-4 py-1 font-bold  md:text-md text-xs sm:text-sm mr-2 mb-2 border-2 flex items-center ${(likeStatus == 2 || likeStatus == 1) ? "text-gray-400 border-gray-300"  : "text-green-500 border-green-400"} `}
+            disabled={disabledButton}
+            onClick={onClickButton}>
+              <img className='w-4 h-4 md:w-6 md:h-6 mr-2' src={(likeStatus == 2 || likeStatus == 1) ? "/static/images/thumb_up_FILL0_wght400.svg": "/static/images/thumb_up_green_wght400.svg"} alt=""></img>
+              { loadingStateButton === "liking" ?
+                        <div className="w-full flex justify-center m-1">
+                          <Loader/>
+                        </div> : <div>{meme.like}</div>
+              }
+          </button>
+          <button 
+            className={`inline-block rounded-lg px-4 py-1 font-bold  md:text-md text-xs sm:text-sm mr-2 mb-2 border-2 flex items-center ${(likeStatus == 2 || likeStatus == 0) ? "text-gray-400 border-gray-300"  : "text-red-500 border-red-400"}`}
+            disabled={disabledButton}
+            onClick={onClickDislikeButton}>
+          <img className='w-4 h-4 md:w-6 md:h-6 mr-2' src={(likeStatus == 2 || likeStatus == 0) ? "/static/images/thumb_down_FILL0_wght400.svg": "/static/images/thumb_down_red_wght400.svg"} alt=""></img>
+              { loadingStateButton === "liking" ?
+                        <div className="w-full flex justify-center m-1">
+                          <Loader/>
+                        </div> : <div>{meme.dislike}</div>
+              }
             </button>
-            <button className="inline-block rounded-lg px-4 py-1 font-bold text-gray-400 md:text-md text-xs sm:text-sm mr-2 mb-2 border-2 border-gray-300 flex items-center">
-            <img className='w-4 h-4 md:w-6 md:h-6 mr-2' src="/static/images/thumb_down_FILL0_wght400.svg" alt=""></img>
-              {meme.dislike}
-              </button>
           </div>
 
           <div className='flex'>

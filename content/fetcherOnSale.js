@@ -67,8 +67,8 @@ export async function getOnSaleMemes(web3, nftContract, marketContract, address)
       title: meta.data.name,
       category: meta.data.category,
       onSale : (!i.sold && !(address.data === i.seller)),
-      like: "519",
-      dislike: "102",
+      like: i.likes,
+      dislike: i.dislikes,
       age: usedTime,
       comment: "297",
       description: meta.data.description

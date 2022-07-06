@@ -13,21 +13,11 @@ import axios from 'axios'
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
-// for tags input, define delimiters
-const KeyCodes = {
-  comma: 188,
-  enter: 13
-};
-// for tags input, define delimiters
-const delimiters = [KeyCodes.comma, KeyCodes.enter];
-
 export default function Manage() {
 
-    const [selectedMeme, setSelectedMeme] = useState(null)
     const [isMinting, setIsMinting] = useState(false)
     const [onSale, setOnSale] = useState(false)
     const { account, network, canPurchaseMeme } = useWalletInfo()
-    const { eth } = useEthPrice()
     const { web3, isLoading, nftContract, marketContract } = useWeb3()
     console.log(marketContract)
     console.log(nftContract)

@@ -54,10 +54,10 @@ export async function getSingleMeme(web3, nftContract, marketContract, address, 
       title: meta.data.name,
       category: meta.data.category,
       onSale : (!data.sold && !(address.data === data.seller)),
-      like: "519",
-      dislike: "102",
+      like: data.likes,
+      dislike: data.dislikes,
       age: usedTime,
-      comment: "297",
+      comment: "...",
       description: meta.data.description
     }
 

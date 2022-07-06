@@ -10,6 +10,8 @@ import { buyNFT } from '@utils/buyNFT'
 import { getOnSaleMemes } from '@content/fetcherOnSale'
 import Image from "next/image"
 import { Loader } from "@components/ui/common"
+import { likeMeme } from '@utils/likeMeme'
+import { dislikeMeme } from '@utils/dislikeMeme'
 
 
 export default function Marketplace() {
@@ -52,6 +54,29 @@ export default function Marketplace() {
 
     }
 
+    const likeOrDislike = async (tokenId, like = true) => {
+      // alert(JSON.stringify(order))
+      setLoadingState('liking')
+      console.log('masuk like or dislike')
+      console.log(marketContract)
+      const test = await getLikeStatus(tokenId)
+      if (like) {
+  
+        const { data } = await likeMeme(marketContract, account, tokenId)
+  
+      } else {
+  
+        const { data } = await dislikeMeme(marketContract, account, tokenId)
+        
+      }
+      setLoadingState('loaded')
+      loadNFTs()
+    }
+
+    async function getLikeStatus(tokenId) {
+      return await marketContract.methods.getLikeStatus(tokenId).call()
+    }    
+
     
  
   
@@ -88,6 +113,10 @@ export default function Marketplace() {
                     key={meme.id}
                     meme={meme}
                     disabled={!canPurchaseMeme}
+                    disabledButton={(!canPurchaseMeme || loadingState === "liking" || isLoading)}
+                    onClickButton={() => likeOrDislike(meme.id)}
+                    onClickDislikeButton={() => likeOrDislike(meme.id, false)}
+                    loadingStateButton={loadingState}                   
                     Footer = { () =>
                       <div className='inline-block px-4 pb-5 content-end'>
                         <div className='font-medium text-base mb-2 flex items-center'>

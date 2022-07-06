@@ -50,8 +50,6 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
 
     }
 
-    let like = "0";
-    let dislike = "0";
 
     // get the like and dislike data
 
@@ -66,8 +64,8 @@ export async function getAllMemes(web3, nftContract, marketContract, address) {
       title: meta.data.name,
       category: meta.data.category,
       onSale : (!i.sold && !(address.data === i.seller)),
-      like: like,
-      dislike: dislike,
+      like: i.likes,
+      dislike: i.dislikes,
       age: usedTime,
       comment: "297",
       description: meta.data.description

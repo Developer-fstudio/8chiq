@@ -128,12 +128,27 @@ contract MemeMarketplace is ReentrancyGuard {
         return idToTokenLikes[tokenId].comments;
     }
 
+    // function to check if like or dislike or neither
+    function getLikeStatus(uint tokenId) public view returns (uint) {
+
+        if (idToTokenLikes[tokenId].addToLike[msg.sender] == true) {
+            return 0;
+        }
+
+        if (idToTokenLikes[tokenId].addToDislike[msg.sender] == true) {
+            return 1;
+        }
+
+        return 2;
+    }    
+
     // create function to like a meme
     function likeMeme(uint tokenId) public payable nonReentrant {
         MarketToken storage m = idToMarketToken[tokenId];
         TokenLikesComment storage mLike = idToTokenLikes[tokenId];
         if (mLike.addToLike[msg.sender] == true) {
-            return;
+            mLike.addToLike[msg.sender] = false;
+            m.likes-=1;
         } else {
             mLike.addToLike[msg.sender] = true;
             m.likes+=1;
@@ -152,7 +167,8 @@ contract MemeMarketplace is ReentrancyGuard {
         MarketToken storage m = idToMarketToken[tokenId];
         TokenLikesComment storage mLike = idToTokenLikes[tokenId];
         if (mLike.addToDislike[msg.sender] == true) {
-            return;
+            mLike.addToDislike[msg.sender] = false;
+            m.dislikes-=1;
         } else {
             mLike.addToDislike[msg.sender] = true;
             m.dislikes+=1;
