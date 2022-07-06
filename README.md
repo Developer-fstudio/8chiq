@@ -51,8 +51,8 @@ yarn dev
 | Sell the Meme on the Marketplace | DONE |
 | Buy the Meme on the Marketplace | DONE |
 | Cancel listing on the Marketplace | DONE |
-| Activate likes and dislikes button function | ONPROGRESS |
-| Activate comment function | ONPROGRESS |
+| Activate likes and dislikes button function | DONE |
+| Activate comment function | DONE |
 | Contract use Testnet | ONPROGRESS |
 
 ## Tools
