@@ -132,7 +132,7 @@ export default function Manage() {
             console.log("ini listing price")
             console.log(listingPrice)
             // approve first
-            let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
+            // let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
             // listingPrice = web3.utils.toWei(listingPrice.toString())
             let transaction = await marketContract.methods.makeMarketItem(nftContract.options.address, tokenId, price).send({from: account.data, value: listingPrice})
           } else {
@@ -140,7 +140,7 @@ export default function Manage() {
             // const price = formInput.price.toString()
             // let listingPrice = await marketContract.methods.getListingPrice().call()
             // approve first
-            let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
+            // let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
             // listingPrice = listingPrice.toString()
             let transaction =  await marketContract.methods.makeMarketItemNonSale(nftContract.options.address, tokenId).send({from: account.data})
             .then(async function(receipt){

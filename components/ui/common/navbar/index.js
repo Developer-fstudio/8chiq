@@ -21,7 +21,7 @@ export default function Navbar() {
                         <div className='flex space-x-7'>
                         <a className='flex items-center py-4 px-2' href='/'>
                             <img className='h-8 w-8 mr-2' src="/static/images/chicken_color.png" alt=""/>
-                            <span className='font-semibold text-white text-lg hidden lg:flex'>8Chiq</span>
+                            <span className='font-semibold text-white text-xl hidden lg:flex font-satisfy'>8Chiq</span>
                         </a>
 
                         <div className='hidden md:flex items-center space-x-1'>
@@ -31,6 +31,11 @@ export default function Navbar() {
                                 </ActiveLinkNav>
                             </div>
                             <div className="px-2 lg:text-base text-sm text-gray-200 font-semibold hover:text-white transition duration-300">
+                                <ActiveLinkNav href="/marketplace">
+                                    <a> Marketplace</a>                                    
+                                </ActiveLinkNav>
+                            </div>                                    
+                            <div className="px-2 lg:text-base text-sm text-gray-200 font-semibold hover:text-white transition duration-300">
                                 <ActiveLinkNav href="/donate">
                                     <a> Donate</a>
                                 </ActiveLinkNav>
@@ -39,12 +44,7 @@ export default function Navbar() {
                                 <ActiveLinkNav  href="/about">
                                     <a > About</a>
                                 </ActiveLinkNav>
-                            </div>
-                            <div className="px-2 lg:text-base text-sm text-gray-200 font-semibold hover:text-white transition duration-300">
-                                <ActiveLinkNav href="/marketplace">
-                                    <a> Marketplace</a>                                    
-                                </ActiveLinkNav>
-                            </div>              
+                            </div>      
                         </div>
 
                         </div>
