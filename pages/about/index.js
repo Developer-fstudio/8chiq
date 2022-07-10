@@ -62,7 +62,7 @@ export default function About() {
                 Said
               </h3>
               <p className={`text-gray-600 mb-8`}>Hi. My name is Said, currently developing this platform as my web3 learning journey. you chan check the code for this platform at 
-                 <a className={`text-purple-600 mb-8`} href="https://github.com/said017/8chiq" target="_blank"> this github repo</a> . and check out <a className={`text-purple-600 mb-8`} href="https://www.linkedin.com/in/said-73ab6912b/" target="_blank"> my linkedin in profile</a> 
+                 <a className={`text-purple-600 mb-8`} href="https://github.com/said017/8chiq" target="_blank" rel="noreferrer"> this github repo</a> . and check out <a className={`text-purple-600 mb-8`} href="https://www.linkedin.com/in/said-73ab6912b/" target="_blank" rel="noreferrer"> my linkedin in profile</a> 
             </p>
             </div>
           </div>

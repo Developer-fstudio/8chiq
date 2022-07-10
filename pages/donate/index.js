@@ -34,7 +34,7 @@ export default function Donate() {
 
         <div className='font-semibold text-black text-xl mt-8'>You can show your love and support this project using button bellow</div>
 
-        <a className='flex items-center py-8 px-2'href="https://www.buymeacoffee.com/saidam017" target="_blank">
+        <a className='flex items-center py-8 px-2'href="https://www.buymeacoffee.com/saidam017" target="_blank" rel="noreferrer">
             <img className='h-32 mr-2' src="/static/images/yellow-button.png" alt=""/>
             <span className='font-semibold text-white text-xl hidden lg:flex font-satisfy'>8Chiq</span>
         </a>
