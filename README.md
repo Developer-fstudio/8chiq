@@ -21,12 +21,35 @@ First, configure the network, in _truffle-config.js_ :
   }
 ```
 
+if you are using test network, for example, you can adjust to the right setting, in this case Goerli Test Network is used. define _infuraProjectId_ and _mnemonic_ in _.env_ :
+
+```bash
+  //Goerli
+  goerli_infura_testnet: {
+    provider: () => new HDWalletProvider({
+      mnemonic: {
+        phrase: mnemonic
+      },
+      providerOrUrl:
+       "wss://goerli.infura.io/ws/v3/" + infuraProjectId
+    }),
+    network_id: 5,
+    confirmations: 2,
+    timeoutBlocks: 800,
+    skipDryRun: true,
+    chainId: 5,
+    gasPrice: 30000000000
+  },  
+```
+
 then, migrate the contract using truffle:
 
 ```bash
 truffle migrate
 # or do this if previously alredy run and do some modification to contract, just in case
 truffle migrate --reset
+#or migrate with spesific network configuration
+truffle migrate --network=<network_name> --reset
 ```
 
 Install all dependencies:
@@ -53,7 +76,7 @@ yarn dev
 | Cancel listing on the Marketplace | DONE |
 | Activate likes and dislikes button function | DONE |
 | Activate comment function | DONE |
-| Contract use Testnet | ONPROGRESS |
+| Contract use Testnet | DONE |
 
 ## Tools
 
@@ -62,4 +85,3 @@ yarn dev
 - Next JS
 - Tailwind
 
-Still on progress.
