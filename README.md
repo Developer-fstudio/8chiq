@@ -1,9 +1,12 @@
 
 # ![favicon-32x32](https://user-images.githubusercontent.com/19762585/174510071-6758e22d-76c8-493e-a5fe-7f9aa8ae0648.png) This is a **8Chiq**, a 9gag clone using blockchain & NFT as a backend
 
-<br>
 
-![display example](https://user-images.githubusercontent.com/19762585/174509955-a81d7981-48a3-41a1-b7a2-f627234b579d.png)
+## <a href="https://8chiq.vercel.app/"> LIVE DEMO</a>
+
+![Library _ Loom - 10 July 2022](https://user-images.githubusercontent.com/19762585/178131746-db744feb-5bcf-4636-a27e-b7ed94a71534.gif)
+
+
 
 
 ## Getting Started
