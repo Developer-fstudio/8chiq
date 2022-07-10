@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import SideBar from '@components/sidebar'
 import { getAllMemes } from "@content/fetcher"
 import { MemeList, MemeCard } from '@components/ui'
 import { BaseLayout } from '@components/ui/layout'

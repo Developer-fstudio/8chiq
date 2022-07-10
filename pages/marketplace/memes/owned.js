@@ -119,7 +119,8 @@ export default function Owned() {
         {/* recent properties section */}
         {  (loadingState === 'loaded' && !memes.length) ? 
                 (requireInstall || !network.isSupported) ? 
-                <h1 className='px-20 py-7 text-4x1'>Please Install Metamask or Changed to Goerli Test Network </h1> : <h1 className='px-20 py-7 text-4x1'>you don't own any Meme</h1> :
+                <h1 className='px-20 py-7 text-4x1'>Please Install Metamask or Changed to Goerli Test Network </h1> : 
+                <h1 className='px-20 py-7 text-4x1'>you dont own any Meme</h1> :
            loadingState === 'not-loaded' ? 
            <div className="w-full flex justify-center">
              <Loader/>

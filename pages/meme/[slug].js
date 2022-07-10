@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import SideBar from '@components/sidebar'
 import {MemeDetail} from '@components/ui'
 import { BaseLayout } from '@components/ui/layout'
 import { getSingleMeme } from '@content/fetcherSingle'
@@ -111,7 +110,7 @@ export default function Meme() {
 
         {/* cards section */}
         { (loadingState === 'loaded' && meme === {}) ? <h1
-           className='px-20 py-7 text-4x1'>you don't own any Meme</h1> :
+           className='px-20 py-7 text-4x1'>you dont own any Meme</h1> :
            loadingState === 'not-loaded' ? 
            <div className="w-full flex justify-center">
              <Loader/>
