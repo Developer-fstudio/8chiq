@@ -4,6 +4,10 @@ import { useWeb3 } from '@components/provider'
 import { useWalletInfo } from '@components/hooks/web3'
 import {useEffect, useState} from 'react'
 import { Loader } from "@components/ui/common"
+import {
+  TwitterShareButton,
+  TwitterIcon,
+} from 'next-share'
 
 
 const logoMap = {
@@ -55,7 +59,7 @@ export default function StoreCard({meme, Footer, disabled, disabledButton, onCli
             </Link>
         </div>
         <div className='flex px-4 pt-4 pb-2 justify-between'>
-        <div className='flex'>
+        <div className='flex content-center mt-2'>
         <button 
             className={`inline-block rounded-lg px-4 py-1 font-bold  md:text-md text-xs sm:text-sm mr-2 mb-2 border-2 flex items-center ${(likeStatus == 2 || likeStatus == 1) ? "text-gray-400 border-gray-300"  : "text-green-500 border-green-400"} `}
             disabled={disabledButton}
@@ -86,9 +90,15 @@ export default function StoreCard({meme, Footer, disabled, disabledButton, onCli
 
         <div className='flex'>
 
-        <button className="inline-block rounded-lg px-4 py-1 font-bold text-gray-400 md:text-md text-xs sm:text-sm mr-2 mb-2 border-2 border-gray-300 flex items-center">
+        {/* <button className="inline-block rounded-lg px-4 py-1 font-bold text-gray-400 md:text-md text-xs sm:text-sm mr-2 mb-2 border-2 border-gray-300 flex items-center">
           <img className='w-4 h-4 md:w-6 md:h-6' src="/static/images/share_48.svg" alt=""></img>
-            </button>
+            </button> */}
+            <TwitterShareButton
+              url={`http://localhost:3000/meme/${meme.id}`}
+              title={'Check out this 8 Chiq meme!!! : '+ `${meme.title}`}
+            >
+              <TwitterIcon size={36} />
+            </TwitterShareButton>
         </div>
 
         </div>

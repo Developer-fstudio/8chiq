@@ -13,7 +13,7 @@ export default function Web3Provider({children}) {
         provider: null,
         web3: null,
         marketContract: null,
-        nftContract: null,
+        // nftContract: null,
         isLoading: true,
         hooks: setupHooks(),
     })
@@ -24,14 +24,15 @@ export default function Web3Provider({children}) {
             const provider = await detectEthereumProvider()
             if (provider) {
                 const web3 = new Web3(provider)
-                const marketContract = await loadContract("MemeMarketplace", web3)
-                const nftContract = await loadContract("NFT", web3)
-                console.log(nftContract)
+                // const marketContract = await loadContract("MemeMarketplace", web3)
+                // const nftContract = await loadContract("NFT", web3)
+                const marketContract = await loadContract("MemeMarketplaceV2", web3)
+                // console.log(nftContract)
                 setWeb3Api({
                     provider,
                     web3,
                     marketContract,
-                    nftContract,
+                    // nftContract,
                     isLoading: false,
                     hooks: setupHooks(web3, provider)
                 })

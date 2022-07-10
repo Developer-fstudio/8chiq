@@ -1,7 +1,7 @@
 
 import axios from 'axios'
 
-export async function getSingleMeme(web3, nftContract, marketContract, address, tokenId) {
+export async function getSingleMeme(web3, marketContract, address, tokenId) {
 
 
   console.log('masuk ke get single meme')
@@ -9,7 +9,7 @@ export async function getSingleMeme(web3, nftContract, marketContract, address, 
   const data = await marketContract.methods.getSingleMarketToken(tokenId).call()
   console.log("data single market")
   console.log(data)
-    const tokenUri = await nftContract.methods.tokenURI(tokenId).call()
+    const tokenUri = await marketContract.methods.tokenURI(tokenId).call()
     // we want get the token metadata - json 
     const meta = await axios.get(tokenUri)
     let price

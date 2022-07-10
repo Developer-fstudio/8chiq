@@ -50,7 +50,7 @@ export default function Navbar() {
                         </div>
 
                         <div className='flex right-0 items-center space-x-2'>
-                        <SearchBox />
+                        {/* <SearchBox /> */}
                         {/* <button 
                             type="button" 
                             className="py-2.5 px-3 lg:px-5 mr-2 lg:text-sm text-xs font-medium text-gray-900 focus:outline-none bg-white rounded-md border border-purple-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-purple-700 dark:text-gray-200 dark:border-purple-600 dark:hover:text-white dark:hover:bg-gray-700">

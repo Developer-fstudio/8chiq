@@ -1,19 +1,24 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+// we will brin in the openzeppelin ERC721 NFT functionality
+
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol';
+import '@openzeppelin/contracts/utils/Counters.sol';
 // security against transactions for multiple request
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
-import '@openzeppelin/contracts/utils/Counters.sol';
 
-contract MemeMarketplace is ReentrancyGuard {
+contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
     using Counters for Counters.Counter;
+    //counter allow us to keep track of tokenIds
+    Counters.Counter private _tokenIds;
+
 
     /* number of items minting, number of transactions, token that have not been sold
     keep track of tokens total number - tokenId
     arrays need to know the lentgth - help to keep track for arrays */
 
-    Counters.Counter private _tokenIds;
     Counters.Counter private _tokensSold;
     uint256 totalEthSold = 0;
 
@@ -26,10 +31,14 @@ contract MemeMarketplace is ReentrancyGuard {
     // mind the matic vs ether price!
     uint256 listingPrice = 0.045 ether;
 
-    constructor() {
-        //set the owner
+    //OBJ: give the NFT market the ability to transact tokens or change ownership
+    // setApprovalForAll allow us to do that with contract address
+
+    // constructor set up our address
+    constructor() ERC721 ('9Chiq Memes', '8Chiqs') {
         owner = payable(msg.sender);
     }
+
     // structs to hold the comments
     struct Comment {
         address addr;
@@ -109,8 +118,8 @@ contract MemeMarketplace is ReentrancyGuard {
     }
 
     // check the owner of NFTs
-    function getOwner(address nftContract, uint tokenId) public view returns (address) {
-        return IERC721(nftContract).ownerOf(tokenId);
+    function getOwner(uint tokenId) public view returns (address) {
+        return IERC721(address(this)).ownerOf(tokenId);
     }
 
     // check if tokenId exists
@@ -140,7 +149,19 @@ contract MemeMarketplace is ReentrancyGuard {
         }
 
         return 2;
-    }    
+    }          
+
+    function mintToken(uint256 newItemId, string memory tokenURI) public returns(uint) {
+        // _tokenIds.increment();
+        // uint256 newItemId = _tokenIds.current();
+        _mint(msg.sender, newItemId);
+        // set the token URI: id and url
+        _setTokenURI(newItemId, tokenURI);
+        // give the marketplace the approval to transact between users
+        setApprovalForAll(address(this), true);
+        // mint the token and set it for sale - return the id to do so
+        return newItemId;
+    }
 
     // create function to like a meme
     function likeMeme(uint tokenId) public payable nonReentrant {
@@ -195,9 +216,9 @@ contract MemeMarketplace is ReentrancyGuard {
     // 2. create a market sale for buying and selling between parties
 
     function makeMarketItem(
-        address nftContract,
         uint tokenId,
-        uint price
+        uint price,
+        string memory tokenURI
     ) 
     public payable nonReentrant {
         // nonReentrant is a modifier to prevent reentry attack
@@ -207,8 +228,7 @@ contract MemeMarketplace is ReentrancyGuard {
         uint itemId;
         // // approve marketplace
         // IERC721(nftContract).approve(address(this),tokenId); 
-        //NFT transaction
-        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
+ 
 
         if (isTokenExists(tokenId)) {
             // this mean token exist in marketplace before
@@ -216,17 +236,19 @@ contract MemeMarketplace is ReentrancyGuard {
             idToMarketToken[tokenId].owner = payable(address(0));
             idToMarketToken[tokenId].price = price;
             idToMarketToken[tokenId].sold = false;
+            itemId = tokenId;
           
         } else {
             // this mean token is new in market place
             _tokenIds.increment();
             itemId = _tokenIds.current();
+            mintToken(itemId, tokenURI);
 
             //putting it up for sale - bool - no owner
-            MarketToken storage m = idToMarketToken[tokenId];
+            MarketToken storage m = idToMarketToken[itemId];
             m.itemId = itemId;
-            m.nftContract = nftContract;
-            m.tokenId = tokenId;
+            m.nftContract = address(this);
+            m.tokenId = itemId;
             m.seller = payable(msg.sender);
             m.owner = payable(address(0));
             m.minter = payable(msg.sender);
@@ -234,27 +256,19 @@ contract MemeMarketplace is ReentrancyGuard {
             m.sold = false;
             m.isExist = true;
             m.timeCreated = block.timestamp;
-            // idToMarketToken[tokenId] = MarketToken(
-            //     itemId,
-            //     nftContract,
-            //     tokenId,
-            //     payable(msg.sender),
-            //     payable(address(0)),
-            //     payable(msg.sender),
-            //     price,
-            //     false,
-            //     true,
-            //     block.timestamp          
-            // );
+
         }
+
+        //NFT transaction
+        IERC721(address(this)).transferFrom(msg.sender, address(this), itemId);
 
 
     
 
         emit MarketTokenMinted(
             itemId, 
-            nftContract, 
-            tokenId, 
+            address(this), 
+            itemId, 
             payable(msg.sender), 
             address(0), 
             payable(msg.sender), 
@@ -269,8 +283,8 @@ contract MemeMarketplace is ReentrancyGuard {
     // 1. create a market item but not sale
 
     function makeMarketItemNonSale(
-        address nftContract,
-        uint tokenId
+        uint tokenId,
+        string memory tokenURI
     ) 
     public payable nonReentrant {
         // nonReentrant is a modifier to prevent reentry attack
@@ -278,26 +292,30 @@ contract MemeMarketplace is ReentrancyGuard {
         // require(price > 0, 'Price must be at least one wei');
         // require(msg.value > listingPrice, 'transaction value must be equal to listing price');
         uint itemId;
-        address ownerNow = IERC721(nftContract).ownerOf(tokenId);
-        require(payable(msg.sender) == ownerNow, 'You cannot manage this NFTs');
+
         // require(msg.value >= listingPrice, 'transaction value must be equal to listing price');
 
         if (isTokenExists(tokenId)) {
             // this mean token exist in marketplace before
+            address ownerNow = ownerOf(tokenId);
+            require(payable(msg.sender) == ownerNow, 'You cannot manage this NFTs');
+
             idToMarketToken[tokenId].seller = payable(msg.sender);
             idToMarketToken[tokenId].owner = payable(msg.sender);
             idToMarketToken[tokenId].sold = true;
+            itemId = tokenId;
           
         } else {
             // this mean token is new in market place
             _tokenIds.increment();
             itemId = _tokenIds.current();
+            mintToken(itemId, tokenURI);
 
             // referencing differently because of mapping inside struct
-            MarketToken storage m = idToMarketToken[tokenId];
+            MarketToken storage m = idToMarketToken[itemId];
             m.itemId = itemId;
-            m.nftContract = nftContract;
-            m.tokenId = tokenId;
+            m.nftContract = address(this);
+            m.tokenId = itemId;
             m.seller = payable(msg.sender);
             m.owner = payable(msg.sender);
             m.minter = payable(msg.sender);
@@ -306,26 +324,13 @@ contract MemeMarketplace is ReentrancyGuard {
             m.isExist = true;
             m.timeCreated = block.timestamp;
 
-            //putting it up for sale - bool - no owner
-            // idToMarketToken[tokenId] = MarketToken(
-            //     itemId,
-            //     nftContract,
-            //     tokenId,
-            //     payable(msg.sender),
-            //     payable(msg.sender),
-            //     payable(msg.sender),
-            //     0,
-            //     true,
-            //     true,
-            //     block.timestamp           
-            // );
         }
 
 
         emit MarketTokenMinted(
             itemId, 
-            nftContract, 
-            tokenId, 
+            address(this), 
+            itemId, 
             payable(msg.sender), 
             address(0), 
             payable(msg.sender), 
@@ -339,7 +344,6 @@ contract MemeMarketplace is ReentrancyGuard {
     // function to conduct transactions and market sales
 
     function createMarketSale(
-        address nftContract,
         uint tokenId
     )
     public payable nonReentrant {
@@ -352,7 +356,9 @@ contract MemeMarketplace is ReentrancyGuard {
         idToMarketToken[currTokenId].seller.transfer(msg.value);
 
         // transfer the token from contract address to the buyer
-        ERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
+        IERC721(address(this)).transferFrom(address(this), msg.sender, tokenId);
+
+        setApprovalForAll(address(this), true);
         _tokensSold.increment();
         totalEthSold += price;
         idToMarketToken[currTokenId].owner = payable(msg.sender);
@@ -368,7 +374,6 @@ contract MemeMarketplace is ReentrancyGuard {
     // function to cancel NFT listing
 
     function cancelMarketSale(
-        address nftContract,
         uint tokenId
     )
     public payable nonReentrant {
@@ -384,7 +389,7 @@ contract MemeMarketplace is ReentrancyGuard {
 
 
         // transfer the token from contract address to the owner back
-        ERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
+        IERC721(address(this)).transferFrom(address(this), msg.sender, tokenId);
         idToMarketToken[currTokenId].owner = payable(msg.sender);
         idToMarketToken[currTokenId].seller = payable(msg.sender);
         idToMarketToken[currTokenId].sold = true;
@@ -407,11 +412,12 @@ contract MemeMarketplace is ReentrancyGuard {
 
         // looping over the number of items created (if number has not been sold populate the array)
         MarketToken[] memory items = new MarketToken[](itemCount);
-        while (currentIndex < itemCount) {
-            if (idToMarketToken[checkingIndex + 1].owner == address(0)) {
+        while (checkingIndex < itemCount) {
+            
+            if (idToMarketToken[checkingIndex + 1].isExist == true) {
                 uint currentId = checkingIndex + 1;
                 MarketToken storage currentItem = idToMarketToken[currentId];
-                if (currentItem.isExist == true) {
+                if (currentItem.owner == payable(address(0))) {
                     items[currentIndex] = currentItem;
                     currentIndex += 1;
                 }
@@ -438,7 +444,7 @@ contract MemeMarketplace is ReentrancyGuard {
 
 
         MarketToken[] memory items = new MarketToken[](totalItemCount);
-        while (currentIndex < totalItemCount) {
+        while (checkingIndex < totalItemCount) {
             if (idToMarketToken[checkingIndex + 1].owner == msg.sender || idToMarketToken[checkingIndex + 1].seller == msg.sender) {
                 uint currentId = checkingIndex + 1;
                 // current array
@@ -455,35 +461,35 @@ contract MemeMarketplace is ReentrancyGuard {
     }
 
     //function for returning an array of minted nfts
-    function fetchItemsCreated() public view returns(MarketToken[] memory) {
-        // insted of owner, it will be the seller
-        uint totalItemCount = _tokenIds.current();
-        uint itemCount = 0;
-        uint currentIndex = 0;
-        uint checkingIndex = 0;
+    // function fetchItemsCreated() public view returns(MarketToken[] memory) {
+    //     // insted of owner, it will be the seller
+    //     uint totalItemCount = _tokenIds.current();
+    //     uint itemCount = 0;
+    //     uint currentIndex = 0;
+    //     uint checkingIndex = 0;
 
-        for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketToken[i + 1].minter == msg.sender) {
-                itemCount += 1;
-            }
-        }
+    //     for (uint i = 0; i < totalItemCount; i++) {
+    //         if (idToMarketToken[i + 1].minter == msg.sender) {
+    //             itemCount += 1;
+    //         }
+    //     }
 
-        MarketToken[] memory items = new MarketToken[](itemCount);
+    //     MarketToken[] memory items = new MarketToken[](itemCount);
 
-        while (currentIndex < totalItemCount) {
-            if (idToMarketToken[checkingIndex + 1].seller == msg.sender) {
-                uint currentId = checkingIndex + 1;
-                MarketToken storage currentItem = idToMarketToken[currentId];
-                if (currentItem.isExist == true) {
-                    items[currentIndex] = currentItem;
-                    currentIndex += 1;
-                }
+    //     while (currentIndex < totalItemCount) {
+    //         if (idToMarketToken[checkingIndex + 1].seller == msg.sender) {
+    //             uint currentId = checkingIndex + 1;
+    //             MarketToken storage currentItem = idToMarketToken[currentId];
+    //             if (currentItem.isExist == true) {
+    //                 items[currentIndex] = currentItem;
+    //                 currentIndex += 1;
+    //             }
                 
-            }
-            checkingIndex += 1;
-        }
-        return items;
-    }
+    //         }
+    //         checkingIndex += 1;
+    //     }
+    //     return items;
+    // }
 
     //function to fetchAllItems - 
     // return the number of all items
@@ -496,7 +502,7 @@ contract MemeMarketplace is ReentrancyGuard {
 
         // looping over the number of items created (if number has not been sold populate the array)
         MarketToken[] memory items = new MarketToken[](itemCount);
-        while (currentIndex < itemCount) {
+        while (checkingIndex < itemCount) {
 
             uint currentId = checkingIndex + 1;
             MarketToken storage currentItem = idToMarketToken[currentId];
@@ -507,8 +513,7 @@ contract MemeMarketplace is ReentrancyGuard {
             checkingIndex +=1;
         }
         return items;
-    }
+    }    
 
-
-
+    
 }

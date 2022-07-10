@@ -15,7 +15,7 @@ import { dislikeMeme } from '@utils/dislikeMeme'
 export default function Home() {
 
   const [memes, setMemes] = useState([])
-  const { web3, isLoading, nftContract, marketContract } = useWeb3()
+  const { web3, isLoading, marketContract, requireInstall } = useWeb3()
   const [loadingState, setLoadingState] = useState('not-loaded')
   const { account, network, canPurchaseMeme } = useWalletInfo()
 
@@ -27,13 +27,17 @@ export default function Home() {
   useEffect(()=> {
     if (!isLoading) {
       console.log(marketContract)
-      console.log(nftContract)
+      // console.log(nftContract)
       loadNFTs()
     } 
-  }, [isLoading])
+  }, [isLoading, canPurchaseMeme, account.data, network.isSupported])
 
   async function loadNFTs() {
-    const { data } = await getAllMemes(web3, nftContract, marketContract, account)
+    if (requireInstall || !network.isSupported) {
+      setLoadingState('loaded')
+      return
+    }
+    const { data } = await getAllMemes(web3, marketContract, account)
     setMemes(data)
     console.log('masuk sini')
     console.log(memes)
@@ -63,8 +67,6 @@ export default function Home() {
     return await marketContract.methods.getLikeStatus(tokenId).call()
   }
 
-  if(loadingState === 'loaded' && !memes.length) return (<h1
-    className='px-20 py-7 text-4x1'>No NFts in marketplace</h1>)
   
   return (
     <div>
@@ -75,8 +77,9 @@ export default function Home() {
       </Head>
         {/* recent properties section */}
 
-        {  (loadingState === 'loaded' && !memes.length) ? <h1
-           className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> : 
+        {  (loadingState === 'loaded' && !memes.length) ? 
+            (requireInstall || !network.isSupported) ? 
+           <h1 className='px-20 py-7 text-4x1'>Please Install Metamask or Changed to Goerli Test Network</h1> : <h1 className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> :
            loadingState === 'not-loaded' ? 
             <div className="w-full flex justify-center">
               <Loader/>

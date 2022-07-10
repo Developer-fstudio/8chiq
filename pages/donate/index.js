@@ -45,15 +45,6 @@ export default function Donate() {
   )
 }
 
-// export function getStaticProps({params}) {
-//   const { web3, nftContract, marketContract } = useWeb3()
-//   const { data } = await getAllMemes( web3, nftContract, marketContract)
-  
-//   return {
-//     props: {
-//       memes: data
-//     }
-//   }
-// }
+
 
 Donate.Layout = BaseLayout

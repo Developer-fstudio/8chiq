@@ -3,24 +3,28 @@ import { Loader } from "@components/ui/common"
 import Image from "next/image"
 import { useWeb3 } from '@components/provider'
 import {useEffect, useState} from 'react'
+import { useWalletInfo } from '@components/hooks/web3'
 
 export default function EthRates() {
 
   const { eth } = useEthPrice()
-  const { web3, isLoading, nftContract, marketContract } = useWeb3()
+  const { web3, isLoading, marketContract , requireInstall } = useWeb3()
   const [salesCount, setSalesCount] = useState("0")
+  const { network } = useWalletInfo()
   
   
   useEffect(()=> {
     if (!isLoading) {
       console.log(marketContract)
-      // console.log(nftContract)
       loadTotalSales()
     } 
   }, [isLoading])
 
 
   async function loadTotalSales() {
+    if ( requireInstall && !network.isSupported) {
+      return
+    }
     let count = await marketContract.methods.getTotalSoldCount().call()
     setSalesCount(count)
   }

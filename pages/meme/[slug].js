@@ -20,7 +20,7 @@ import { getComments } from '@content/getComments'
 export default function Meme() {
 
   const { account, network, canPurchaseMeme } = useWalletInfo()
-  const { web3, isLoading, nftContract, marketContract } = useWeb3()
+  const { web3, isLoading, marketContract } = useWeb3()
   const [meme, setMeme] = useState({})
   const [comments, setComments] = useState({})
   const [isBuy, setBuy] = useState(false)
@@ -31,9 +31,9 @@ export default function Meme() {
 
 
   useEffect(()=> {
-    if (!isLoading) {
+    if (!isLoading && web3) {
       console.log(marketContract)
-      console.log(nftContract)
+      // console.log(nftContract)
       loadNFT()
     } 
   }, [isLoading, canPurchaseMeme, account.data])
@@ -45,7 +45,7 @@ export default function Meme() {
   }, [meme])
 
   async function loadNFT() {
-    const { data } = await getSingleMeme(web3, nftContract, marketContract, account, slug)
+    const { data } = await getSingleMeme(web3, marketContract, account, slug)
     setMeme(data)
     console.log('load NFT')
     setLoadingState('loaded')
@@ -62,7 +62,7 @@ export default function Meme() {
     // alert(JSON.stringify(order))
     setBuy(false)
     setLoadingState('buying')
-    const { data } = await buyNFT(web3, nftContract, marketContract, account, tokenId, order.price)
+    const { data } = await buyNFT(web3, marketContract, account, tokenId, order.price)
     console.log('purchased')
     console.log(data)
     loadNFT()
@@ -171,9 +171,9 @@ export default function Meme() {
 
                 {/* Memes Cards */}
 
-                {comment =>
+                {(comment, i) =>
                   <CommentCustom
-                    key={comment.id}
+                    key={i}
                     comment={comment}
                   />
                 }

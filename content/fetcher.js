@@ -1,18 +1,20 @@
 
 import axios from 'axios'
 
-export async function getAllMemes(web3, nftContract, marketContract, address) {
+export async function getAllMemes(web3, marketContract, address) {
 
 
   // console.log('masuk ke get data')
   // console.log(marketContract.methods)
+  console.log("data all market masuk")
+  console.log(marketContract)
   const data = await marketContract.methods.fetchMarketAllTokens().call()
   console.log("data all market")
   console.log(data)
   const items = await Promise.all(data.map(async i => {
     // console.log('masuk sini ga sih')
     // console.log(i)
-    const tokenUri = await nftContract.methods.tokenURI(i.tokenId).call()
+    const tokenUri = await marketContract.methods.tokenURI(i.tokenId).call()
     // we want get the token metadata - json 
     const meta = await axios.get(tokenUri)
     let price

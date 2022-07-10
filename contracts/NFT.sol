@@ -19,7 +19,7 @@ contract NFT is ERC721URIStorage {
     // setApprovalForAll allow us to do that with contract address
 
     // constructor set up our address
-    constructor(address marketplaceAddress) ERC721 ('9Chiq Memes', '9Chiqs') {
+    constructor(address marketplaceAddress) ERC721 ('9Chiq Memes', '8Chiqs') {
         contractAddress = marketplaceAddress;
     }
 

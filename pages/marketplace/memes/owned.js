@@ -9,6 +9,8 @@ import {useEffect, useState} from 'react'
 import { getOwnedMemes } from '@content/fetcherOwned'
 import { canceListNFT } from '@utils/cancelListMeme'
 import { Loader } from "@components/ui/common"
+import { likeMeme } from '@utils/likeMeme'
+import { dislikeMeme } from '@utils/dislikeMeme'
 
 
 export default function Owned() {
@@ -17,7 +19,7 @@ export default function Owned() {
     const [cancelMeme, setCancelMeme] = useState(null)
     const { account, network, canPurchaseMeme } = useWalletInfo()
     const { eth } = useEthPrice()
-    const { web3, isLoading, nftContract, marketContract } = useWeb3()
+    const { web3, isLoading, marketContract, requireInstall } = useWeb3()
     const [memes, setMemes] = useState([])
     const [loadingState, setLoadingState] = useState('not-loaded')
   
@@ -25,22 +27,25 @@ export default function Owned() {
     useEffect(()=> {
       if (!isLoading) {
         console.log(marketContract)
-        console.log(nftContract)
         loadNFTs()
       } 
     }, [isLoading, canPurchaseMeme, account.data])
 
 
     async function loadNFTs() {
-      const { data } = await getOwnedMemes(web3, nftContract, marketContract, account)
+      if (requireInstall || !network.isSupported) {
+        setLoadingState('loaded')
+        return
+      }
+      const { data } = await getOwnedMemes(web3, marketContract, account)
       setMemes(data)
       console.log('masuk sini')
       console.log(memes)
       setLoadingState('loaded')
     }
 
-    console.log('tes ke sini ga ya')
-    console.log(memes[0])
+    // console.log('tes ke sini ga ya')
+    // console.log(memes[0])
 
     const sellMeme = async (order, tokenId) => {
       // alert(JSON.stringify())
@@ -50,13 +55,13 @@ export default function Owned() {
       let listingPrice = await marketContract.methods.getListingPrice().call()
       console.log("ini price")
       console.log(price)
-      let addressOwner = await marketContract.methods.getOwner(nftContract.options.address, tokenId).call()
-      // getOwner(address nftContract, uint tokenId)
+      let addressOwner = await marketContract.methods.getOwner(tokenId).call()
+ 
       console.log(addressOwner)
       // approve market first before you can list
-      let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
+      // let approve = await marketContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
       // listingPrice = web3.utils.toWei(listingPrice.toString())
-      let transaction = await marketContract.methods.makeMarketItem(nftContract.options.address, tokenId, price).send({from: account.data, value: listingPrice})
+      let transaction = await marketContract.methods.makeMarketItem(tokenId, price, "none").send({from: account.data, value: listingPrice})
       loadNFTs()
       setLoadingState('loaded')
     }
@@ -65,12 +70,31 @@ export default function Owned() {
       // alert(JSON.stringify(order))
       setCancelMeme(null)
       setLoadingState('selling')
-      const { data } = await canceListNFT(web3, nftContract, marketContract, account, tokenId)
+      const { data } = await canceListNFT(web3, marketContract, account, tokenId)
       console.log('purchased')
       console.log(data)
       loadNFTs()
       setLoadingState('loaded')
-    }    
+    }
+    
+    const likeOrDislike = async (tokenId, like = true) => {
+      // alert(JSON.stringify(order))
+      setLoadingState('liking')
+      console.log('masuk like or dislike')
+      console.log(marketContract)
+      
+      if (like) {
+  
+        const { data } = await likeMeme(marketContract, account, tokenId)
+  
+      } else {
+  
+        const { data } = await dislikeMeme(marketContract, account, tokenId)
+        
+      }
+      setLoadingState('loaded')
+      loadNFTs()
+    }
 
     
  
@@ -93,8 +117,9 @@ export default function Owned() {
 
 
         {/* recent properties section */}
-        {  (loadingState === 'loaded' && !memes.length) ? <h1
-           className='px-20 py-7 text-4x1'>you don't own any Meme</h1> :
+        {  (loadingState === 'loaded' && !memes.length) ? 
+                (requireInstall || !network.isSupported) ? 
+                <h1 className='px-20 py-7 text-4x1'>Please Install Metamask or Changed to Goerli Test Network </h1> : <h1 className='px-20 py-7 text-4x1'>you don't own any Meme</h1> :
            loadingState === 'not-loaded' ? 
            <div className="w-full flex justify-center">
              <Loader/>
@@ -108,6 +133,10 @@ export default function Owned() {
                     key={meme.id}
                     meme={meme}
                     disabled={!canPurchaseMeme}
+                    disabledButton={(!canPurchaseMeme || loadingState === "liking" || isLoading)}
+                    onClickButton={() => likeOrDislike(meme.id)}
+                    onClickDislikeButton={() => likeOrDislike(meme.id, false)}
+                    loadingStateButton={loadingState}                         
                     Footer = { () => meme.sold ? 
                       <div className='inline-block px-4 pb-5 content-end'>
                         <button 

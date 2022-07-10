@@ -19,7 +19,7 @@ export default function Marketplace() {
     const [selectedMeme, setSelectedMeme] = useState(null)
     const { account, network, canPurchaseMeme } = useWalletInfo()
     const { eth } = useEthPrice()
-    const { web3, isLoading, nftContract, marketContract } = useWeb3()
+    const { web3, isLoading, marketContract, requireInstall } = useWeb3()
     const [memes, setMemes] = useState([])
     const [loadingState, setLoadingState] = useState('not-loaded')
   
@@ -27,14 +27,17 @@ export default function Marketplace() {
     useEffect(()=> {
       if (!isLoading) {
         console.log(marketContract)
-        console.log(nftContract)
         loadNFTs()
       } 
     }, [isLoading, canPurchaseMeme, account.data])
 
 
     async function loadNFTs() {
-      const { data } = await getOnSaleMemes(web3, nftContract, marketContract, account)
+      if (requireInstall || !network.isSupported) {
+        setLoadingState('loaded')
+        return
+      }      
+      const { data } = await getOnSaleMemes(web3, marketContract, account)
       setMemes(data)
       console.log('masuk sini')
       console.log(memes)
@@ -45,7 +48,7 @@ export default function Marketplace() {
       // alert(JSON.stringify(order))
       setSelectedMeme(null)
       setLoadingState('buying')
-      const { data } = await buyNFT(web3, nftContract, marketContract, account, tokenId, order.price)
+      const { data } = await buyNFT(web3, marketContract, account, tokenId, order.price)
       console.log('purchased')
       console.log(data)
       setLoadingState('loaded')
@@ -98,8 +101,9 @@ export default function Marketplace() {
 
 
         {/* recent properties section */}
-        {  (loadingState === 'loaded' && !memes.length) ? <h1
-           className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> : 
+        {  (loadingState === 'loaded' && !memes.length) ? 
+            (requireInstall || !network.isSupported) ? 
+           <h1 className='px-20 py-7 text-4x1'>Please Install Metamask or Changed to Goerli Test Network</h1> : <h1 className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> :
             loadingState === 'not-loaded' ? 
             <div className="w-full flex justify-center">
               <Loader/>

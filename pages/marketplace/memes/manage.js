@@ -18,9 +18,8 @@ export default function Manage() {
     const [isMinting, setIsMinting] = useState(false)
     const [onSale, setOnSale] = useState(false)
     const { account, network, canPurchaseMeme } = useWalletInfo()
-    const { web3, isLoading, nftContract, marketContract } = useWeb3()
+    const { web3, isLoading,  marketContract } = useWeb3()
     console.log(marketContract)
-    console.log(nftContract)
 
     // file to upload
     const [fileUrl, setFileUrl] = useState(null)
@@ -32,35 +31,6 @@ export default function Manage() {
       // ]
     })
     const router = useRouter()
-
-    //handle delete tags
-    const handleDelete = i => {
-      updateFormInput({...formInput, tags : formInput.tags.filter((tag, index) => index !== i)})
-      // setTags(tags.filter((tag, index) => index !== i));
-    }
-
-    // handle tags addition
-    const handleAddition = tag => {
-      updateFormInput({...formInput, tags : [...formInput.tags, tag]})
-      // setTags([...tags, tag]);
-    };
-    
-    // handle drag tags
-    const handleDrag = (tag, currPos, newPos) => {
-      const newTags = formInput.tags.slice();
-  
-      newTags.splice(currPos, 1);
-      newTags.splice(newPos, 0, tag);
-  
-      // re-render
-      updateFormInput({...formInput, tags : newTags})
-      // setTags(newTags);
-    };
-
-    // handle clear all tags
-    const onClearAll = () => {
-      updateFormInput({...formInput, tags : []})
-    };
 
     async function onChange(e) {
       const file = e.target.files[0]
@@ -111,21 +81,9 @@ export default function Manage() {
       
       setIsMinting(true)
       console.log("try to mint")
-      let tokenId
+      let tokenId = 0;
       // we want to create the token
       try {
-        const result = await nftContract.methods.mintToken(url).send({from: account.data})
-        .then(async function(receipt){
-          console.log(receipt)
-          console.log("mint finish")
-          let event = receipt.events.Transfer
-          console.log(event)
-          let value = event.returnValues.tokenId
-          tokenId = parseInt(value)
-          //test for posting to firebase
-        
-          console.log(value)
-
           if (onSale) {
             const price = web3.utils.toWei(formInput.price.toString())
             let listingPrice = await marketContract.methods.getListingPrice().call()
@@ -134,7 +92,7 @@ export default function Manage() {
             // approve first
             // let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
             // listingPrice = web3.utils.toWei(listingPrice.toString())
-            let transaction = await marketContract.methods.makeMarketItem(nftContract.options.address, tokenId, price).send({from: account.data, value: listingPrice})
+            let transaction = await marketContract.methods.makeMarketItem(tokenId, price, url).send({from: account.data, value: listingPrice})
           } else {
             console.log('sempat coba marketContract')
             // const price = formInput.price.toString()
@@ -142,10 +100,7 @@ export default function Manage() {
             // approve first
             // let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
             // listingPrice = listingPrice.toString()
-            let transaction =  await marketContract.methods.makeMarketItemNonSale(nftContract.options.address, tokenId).send({from: account.data})
-            .then(async function(receipt){
-           
-             })
+            let transaction =  await marketContract.methods.makeMarketItemNonSale(tokenId, url).send({from: account.data})
           }
     
     
@@ -157,9 +112,12 @@ export default function Manage() {
           router.push('/marketplace/memes/owned')
           setIsMinting(false)
           // receipt can also be a new contract instance, when coming from a "contract.deploy({...}).send()"
-      });
+      
       } catch {
-        console.error("Purchase course: Operation has failed.")
+        console.error("Too long waited to mint, go to main page")
+
+        router.push('/marketplace/memes/owned')
+        setIsMinting(false)
       }
       
       // list the item for sale on the marketplace 

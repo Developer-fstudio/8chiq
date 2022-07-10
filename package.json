@@ -11,6 +11,7 @@
   "dependencies": {
     "@metamask/detect-provider": "^1.2.0",
     "@openzeppelin/contracts": "^4.6.0",
+    "@truffle/hdwallet-provider": "^2.0.10",
     "axios": "^0.27.2",
     "dashify": "^2.0.0",
     "ethers": "^5.6.8",
