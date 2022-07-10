@@ -94,7 +94,7 @@ export default function Card({meme, disabledButton, onClickButton, onClickDislik
         <div className='flex'>
         <div className="m-2">
             <FacebookShareButton
-              url={`http://localhost:3000/meme/${meme.id}`}
+              url={`https://8chiq.vercel.app/meme/${meme.id}`}
               quote={'Check out this 8 Chiq meme!!! : '+ `${meme.title}`}
               hashtag={'#8chiq'}
             >
@@ -104,7 +104,7 @@ export default function Card({meme, disabledButton, onClickButton, onClickDislik
 
           <div className="m-2">
             <TwitterShareButton
-              url={`http://localhost:3000/meme/${meme.id}`}
+              url={`https://8chiq.vercel.app/meme/${meme.id}`}
               title={'Check out this 8 Chiq meme!!! : '+ `${meme.title}`}
             >
               <TwitterIcon size={48} />

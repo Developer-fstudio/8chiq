@@ -94,7 +94,7 @@ export default function StoreCard({meme, Footer, disabled, disabledButton, onCli
           <img className='w-4 h-4 md:w-6 md:h-6' src="/static/images/share_48.svg" alt=""></img>
             </button> */}
             <TwitterShareButton
-              url={`http://localhost:3000/meme/${meme.id}`}
+              url={`https://8chiq.vercel.app/meme/${meme.id}`}
               title={'Check out this 8 Chiq meme!!! : '+ `${meme.title}`}
             >
               <TwitterIcon size={36} />

@@ -26,7 +26,7 @@ export default function MemeDetail({meme, Footer, disabledButton, onClickButton,
   const { isLoading, marketContract } = useWeb3()
   const { account } = useWalletInfo()
   const router = useRouter()
-  const shareLink = `http://localhost:3000${router.asPath}` 
+  const shareLink = `https://8chiq.vercel.app/${router.asPath}` 
 
 
   const [likeStatus, setLikeStatus] = useState(2)
