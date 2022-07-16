@@ -5,6 +5,7 @@ import {CustomeButton} from '@components/ui/common'
 import { useRouter } from 'next/router'
 import ActiveLink from '../link'
 import ActiveLinkNav from '../linknav'
+import Link from 'next/link'
 
 
 
@@ -19,11 +20,12 @@ export default function Navbar() {
                 <div className='px-4'>
                     <div className='flex w-full justify-between'>
                         <div className='flex space-x-7'>
-                        <a className='flex items-center py-4 px-2' href='/'>
-                            <img className='h-8 w-8 mr-2' src="/static/images/chicken_color.png" alt=""/>
-                            <span className='font-semibold text-white text-xl hidden lg:flex font-satisfy'>8Chiq</span>
-                        </a>
-
+                        <Link href="/">
+                            <a className='flex items-center py-4 px-2'>
+                                <img className='h-8 w-8 mr-2' src="/static/images/chicken_color.png" alt=""/>
+                                <span className='font-semibold text-white text-xl hidden lg:flex font-satisfy'>8Chiq</span>
+                            </a>
+                        </Link>
                         <div className='hidden md:flex items-center space-x-1'>
                             <div className="px-2 lg:text-base text-sm text-gray-200 font-semibold hover:text-white transition duration-300">
                                 <ActiveLinkNav href="/">
