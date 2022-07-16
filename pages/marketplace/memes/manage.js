@@ -13,6 +13,14 @@ import axios from 'axios'
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
+const categoryMap = {
+  "Funny" : 1,
+  "Anime" : 2,
+  "Blockchain" : 3,
+  "Cat" : 4,
+  "Chiq" : 5
+}
+
 export default function Manage() {
 
     const [isMinting, setIsMinting] = useState(false)
@@ -70,13 +78,13 @@ export default function Manage() {
           
 
           // run a function that creates sale and passes in the url 
-          createSale(url)
+          createSale(url, category)
           } catch (error) {
               console.log('Error uploading file:', error)
           }
      }
 
-     async function createSale(url) {
+     async function createSale(url, category) {
       // create the items and list them on the marketplace
       
       setIsMinting(true)
@@ -92,7 +100,7 @@ export default function Manage() {
             // approve first
             // let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
             // listingPrice = web3.utils.toWei(listingPrice.toString())
-            let transaction = await marketContract.methods.makeMarketItem(tokenId, price, url).send({from: account.data, value: listingPrice})
+            let transaction = await marketContract.methods.makeMarketItem(tokenId, price, url, categoryMap[category]).send({from: account.data, value: listingPrice})
           } else {
             console.log('sempat coba marketContract')
             // const price = formInput.price.toString()
@@ -100,15 +108,12 @@ export default function Manage() {
             // approve first
             // let approve = await nftContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
             // listingPrice = listingPrice.toString()
-            let transaction =  await marketContract.methods.makeMarketItemNonSale(tokenId, url).send({from: account.data})
+            let transaction =  await marketContract.methods.makeMarketItemNonSale(tokenId, url, categoryMap[category]).send({from: account.data})
           }
-    
     
           // transaction = await contract.makeMarketItem(nftaddress, tokenId, price, {value: listingPrice})
           // await transaction.wait()
-          
-          
-          
+                   
           router.push('/marketplace/memes/owned')
           setIsMinting(false)
           // receipt can also be a new contract instance, when coming from a "contract.deploy({...}).send()"

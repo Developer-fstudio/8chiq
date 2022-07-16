@@ -1,37 +1,47 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { getAllMemes } from "@content/fetcher"
 import { MemeList, MemeCard } from '@components/ui'
 import { BaseLayout } from '@components/ui/layout'
 import { useWeb3 } from '@components/provider'
 import {useEffect, useState} from 'react'
 import { useWalletInfo } from '@components/hooks/web3'
-import { Loader, ActiveLinkNavCat } from "@components/ui/common"
+import { ActiveLinkNavCat, Loader } from "@components/ui/common"
 import { likeMeme } from '@utils/likeMeme'
 import { dislikeMeme } from '@utils/dislikeMeme'
+import { useRouter } from 'next/router'
+import { getOnCatMemes } from '@content/fetchOnCat'
+
+const categoryMap = {
+  "funny" : 1,
+  "anime" : 2,
+  "blockchain" : 3,
+  "cat" : 4,
+  "chiq" : 5
+}
 
 
-export default function Home() {
+export default function Category() {
 
   const [memes, setMemes] = useState([])
   const { web3, isLoading, marketContract, requireInstall } = useWeb3()
   const [loadingState, setLoadingState] = useState('not-loaded')
   const { account, network, canPurchaseMeme } = useWalletInfo()
+  const router = useRouter()
+  const { slug } = router.query  
 
   // console.log(marketContract)
   // console.log(nftContract)
   
  
   useEffect(()=> {
-    if (!isLoading) {
+    if (!isLoading && slug) {
       console.log(marketContract)
       // console.log(nftContract)
       loadNFTs()
     } 
-  }, [isLoading, canPurchaseMeme, account.data, network.isSupported])
+  }, [isLoading, canPurchaseMeme, account.data, network.isSupported, slug])
 
   async function loadNFTs() {
-    setLoadingState('not-loaded')
     if (requireInstall) {
       console.log("sempet masuk sini? karena require install")
       setLoadingState('loaded')
@@ -44,8 +54,9 @@ export default function Home() {
       setLoadingState('loaded')
       return
     }
-    const { data } = await getAllMemes(web3, marketContract, account)
+    const { data } = await getOnCatMemes(web3, marketContract, account, categoryMap[slug])
     setMemes(data)
+    console.log('masuk sini')
     console.log(memes)
     setLoadingState('loaded')
   }
@@ -85,7 +96,28 @@ export default function Home() {
 
         {  (loadingState === 'loaded' && !memes.length) ? 
             (requireInstall || !network.isSupported) ? 
-           <h1 className='px-20 py-7 text-4x1'>Please Install Metamask or Changed to Goerli Test Network</h1> : <h1 className='px-20 py-7 text-4x1'>No NFts in marketplace</h1> :
+           <h1 className='px-20 py-7 text-4x1'>Please Install Metamask or Changed to Goerli Test Network</h1> : 
+           <>
+              <div className="mt-4 flex text-gray-700 max-w-2xl mx-auto">
+                    <ActiveLinkNavCat href="/interest/funny">
+                        <a className='px-2'>Funny</a>
+                    </ActiveLinkNavCat>
+                    <ActiveLinkNavCat href="/interest/anime">
+                        <a className='px-2'>Anime</a>
+                    </ActiveLinkNavCat>                 
+                    <ActiveLinkNavCat href="/interest/blockchain">
+                        <a className='px-2'>Blockchain</a>
+                    </ActiveLinkNavCat>
+                    <ActiveLinkNavCat href="/interest/cat">
+                        <a className='px-2'>Cat</a>
+                    </ActiveLinkNavCat>
+                    <ActiveLinkNavCat href="/interest/chiq">
+                        <a className='px-2'>Chiq</a>
+                    </ActiveLinkNavCat>                                                     
+              </div>
+              <h1 className='py-7 text-4x1 max-w-2xl mx-auto'>No NFts in this category</h1>            
+              
+           </> :
            loadingState === 'not-loaded' ? 
             <div className="w-full flex justify-center">
               <Loader/>
@@ -107,7 +139,7 @@ export default function Home() {
                   </ActiveLinkNavCat>
                   <ActiveLinkNavCat href="/interest/chiq">
                       <a className='px-2'>Chiq</a>
-                  </ActiveLinkNavCat>                  
+                  </ActiveLinkNavCat>                                                       
             </div>
             
             <MemeList memes={memes}>
@@ -145,4 +177,4 @@ export default function Home() {
 //   }
 // }
 
-Home.Layout = BaseLayout
+Category.Layout = BaseLayout

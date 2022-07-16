@@ -55,13 +55,10 @@ export default function Owned() {
       let listingPrice = await marketContract.methods.getListingPrice().call()
       console.log("ini price")
       console.log(price)
-      let addressOwner = await marketContract.methods.getOwner(tokenId).call()
- 
-      console.log(addressOwner)
       // approve market first before you can list
       // let approve = await marketContract.methods.setApprovalForAll(marketContract.options.address, true).send({from: account.data})
       // listingPrice = web3.utils.toWei(listingPrice.toString())
-      let transaction = await marketContract.methods.makeMarketItem(tokenId, price, "none").send({from: account.data, value: listingPrice})
+      let transaction = await marketContract.methods.makeMarketItem(tokenId, price, "none", 1).send({from: account.data, value: listingPrice})
       loadNFTs()
       setLoadingState('loaded')
     }

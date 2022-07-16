@@ -1,34 +1,22 @@
 
 import axios from 'axios'
 
-export async function getOnSaleMemes(web3, marketContract, address) {
+export async function getOnCatMemes(web3, marketContract, address, category) {
 
 
-  console.log('masuk ke getOnSaleMemes')
-  let data
-  console.log(address.data)
+  // console.log('masuk ke get data')
   // console.log(marketContract.methods)
-
-  data = await marketContract.methods.fetchMarketTokens().call({from: address.data}, function(error, result){
-    console.log('loh ini error ya? (sales)')
-    console.log(error)
-    console.log(result)
-  })
-
-
+  console.log("data category market masuk")
+  console.log(marketContract)
   
-  // console.log("data all market")
-  console.log("fetch my nft")
+  let data = await marketContract.methods.fetchMarketCategory(category).call()
+  console.log("data category market")
   console.log(data)
-  // filter for exist item only
   data = data.filter(item => item.isExist)
   const items = await Promise.all(data.map(async i => {
     // console.log('masuk sini ga sih')
     // console.log(i)
-    
     const tokenUri = await marketContract.methods.tokenURI(i.tokenId).call()
-    console.log('token URI')
-    console.log(tokenUri)
     // we want get the token metadata - json 
     const meta = await axios.get(tokenUri)
     let price
@@ -40,8 +28,6 @@ export async function getOnSaleMemes(web3, marketContract, address) {
     console.log(`ini address ${address.data}`)
     console.log(`ini owner ${i.owner}`)
     console.log(`sama ga mereka? ${(address.data === i.seller)}`)
-    console.log(`token nya apa ${i.tokenId}`)
-    console.log(meta)
 
     // start of calculating time to show
     let dateNow = new Date()
@@ -68,6 +54,11 @@ export async function getOnSaleMemes(web3, marketContract, address) {
 
     }
 
+
+    // get the like and dislike data
+
+
+    
     let item = {
       price,
       id: i.tokenId,
@@ -83,9 +74,11 @@ export async function getOnSaleMemes(web3, marketContract, address) {
       comment: "297",
       description: meta.data.description
     }
-    console.log(item)
     return item
   }))
+
+
+  
   console.log('ada dong datanya sih')
   console.log(items)
   const count = await marketContract.methods.getCount().call()

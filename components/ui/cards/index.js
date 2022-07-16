@@ -45,7 +45,7 @@ export default function Card({meme, disabledButton, onClickButton, onClickDislik
     return (
         <div className='rounded overflow-hidden shadow-md'>
         <div className='flex items-center px-4 py-2'>
-          <a className='flex items-center' href=''>
+          <a className='flex items-center' href={`/interest/${meme.category.toLowerCase()}`}>
             <img className='w-6 h-6 mr-2' src={logoMap[meme.category]} alt=""></img>
             <p className='text-gray-500 text-xs'>{meme.category}</p>
           </a>

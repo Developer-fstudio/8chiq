@@ -45,7 +45,7 @@ export async function getOwnedMemes(web3, marketContract, address) {
       let Difference_In_hour = Math.round(Difference_In_Time / (1000 * 3600))
       usedTime =`${Difference_In_hour}h`
 
-      if (usedTime > 24) {
+      if (Difference_In_hour > 24) {
 
         // now calculate in days
         let Difference_In_days = Math.round(Difference_In_Time / (1000 * 3600 * 24))

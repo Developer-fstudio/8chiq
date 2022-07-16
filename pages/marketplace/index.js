@@ -29,18 +29,31 @@ export default function Marketplace() {
         console.log(marketContract)
         loadNFTs()
       } 
-    }, [isLoading, canPurchaseMeme, account.data])
+    }, [isLoading, canPurchaseMeme, account.data , network.isSupported])
+
+    // useEffect(()=> {
+    //   if (!isLoading) {
+    //     setLoadingState('loaded')
+    //   } 
+    // }, [memes])
 
 
     async function loadNFTs() {
-      if (requireInstall || !network.isSupported) {
+      if (requireInstall) {
+        console.log("sempet masuk sini? karena require install")
         setLoadingState('loaded')
         return
-      }      
+      }
+      
+      if (!network.isSupported && network.data != null) {
+        console.log("sempet masuk sini? karena network is supported")
+        console.log(network)
+        setLoadingState('loaded')
+        return
+      }
+      console.log("load NFT jalan yuk")
       const { data } = await getOnSaleMemes(web3, marketContract, account)
       setMemes(data)
-      console.log('masuk sini')
-      console.log(memes)
       setLoadingState('loaded')
     }
 

@@ -25,18 +25,18 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
     // determine who is the owner of the contract
     // charge a listing fee so the owner makes a commission
 
-    address payable owner;
+    address immutable i_contractOwner;
     // we are deploying to matic the API is the same so you can use ether the same as matic
     // they both have 18 deimal
     // mind the matic vs ether price!
-    uint256 listingPrice = 0.045 ether;
+    uint256 constant LISTING_PRICE = 0.025 ether;
 
     //OBJ: give the NFT market the ability to transact tokens or change ownership
     // setApprovalForAll allow us to do that with contract address
 
     // constructor set up our address
-    constructor() ERC721 ('9Chiq Memes', '8Chiqs') {
-        owner = payable(msg.sender);
+    constructor() ERC721 ('8Chiq Memes', '8Chiqs') {
+        i_contractOwner = payable(msg.sender);
     }
 
     // structs to hold the comments
@@ -68,6 +68,7 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         uint timeCreated;
         uint likes;
         uint dislikes;
+        uint category;
     }
 
     // tokenId return which marketToken - fetch which one it is
@@ -100,7 +101,7 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
 
     // get the listing price
     function getListingPrice() public view returns (uint256) {
-        return listingPrice;
+        return LISTING_PRICE;
     }
 
     // get the total sold
@@ -118,9 +119,9 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
     }
 
     // check the owner of NFTs
-    function getOwner(uint tokenId) public view returns (address) {
-        return IERC721(address(this)).ownerOf(tokenId);
-    }
+    // function getOwner(uint tokenId) public view returns (address) {
+    //     return IERC721(address(this)).ownerOf(tokenId);
+    // }
 
     // check if tokenId exists
     function getSingleMarketToken(uint256 tokenId) public view returns (MarketToken memory) {
@@ -209,8 +210,6 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         mLike.comments.push(Comment(msg.sender, comment));
     }
 
-
-
     // two functios to interact with contract
     // 1. create a market item to put it up for sale
     // 2. create a market sale for buying and selling between parties
@@ -218,13 +217,14 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
     function makeMarketItem(
         uint tokenId,
         uint price,
-        string memory tokenURI
+        string memory tokenURI,
+        uint category
     ) 
     public payable nonReentrant {
         // nonReentrant is a modifier to prevent reentry attack
 
         require(price > 0, 'Price must be at least one wei');
-        require(msg.value >= listingPrice, 'transaction value must be equal to listing price');
+        require(msg.value >= LISTING_PRICE, 'transaction value must be equal to listing price');
         uint itemId;
         // // approve marketplace
         // IERC721(nftContract).approve(address(this),tokenId); 
@@ -232,6 +232,9 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
 
         if (isTokenExists(tokenId)) {
             // this mean token exist in marketplace before
+            address ownerNow = ownerOf(tokenId);
+            require(payable(msg.sender) == ownerNow, 'You cannot manage this NFTs');
+            // update the status of the item
             idToMarketToken[tokenId].seller = payable(msg.sender);
             idToMarketToken[tokenId].owner = payable(address(0));
             idToMarketToken[tokenId].price = price;
@@ -256,14 +259,12 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
             m.sold = false;
             m.isExist = true;
             m.timeCreated = block.timestamp;
+            m.category = category;
 
         }
 
         //NFT transaction
         IERC721(address(this)).transferFrom(msg.sender, address(this), itemId);
-
-
-    
 
         emit MarketTokenMinted(
             itemId, 
@@ -284,7 +285,8 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
 
     function makeMarketItemNonSale(
         uint tokenId,
-        string memory tokenURI
+        string memory tokenURI,
+        uint category
     ) 
     public payable nonReentrant {
         // nonReentrant is a modifier to prevent reentry attack
@@ -297,11 +299,13 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
 
         if (isTokenExists(tokenId)) {
             // this mean token exist in marketplace before
+            
             address ownerNow = ownerOf(tokenId);
             require(payable(msg.sender) == ownerNow, 'You cannot manage this NFTs');
 
             idToMarketToken[tokenId].seller = payable(msg.sender);
             idToMarketToken[tokenId].owner = payable(msg.sender);
+            idToMarketToken[tokenId].price = 0; 
             idToMarketToken[tokenId].sold = true;
             itemId = tokenId;
           
@@ -323,9 +327,9 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
             m.sold = true;
             m.isExist = true;
             m.timeCreated = block.timestamp;
+            m.category = category;
 
         }
-
 
         emit MarketTokenMinted(
             itemId, 
@@ -350,6 +354,8 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         uint price = idToMarketToken[tokenId].price;
         uint currTokenId = idToMarketToken[tokenId].tokenId;
 
+        require(payable(msg.sender) != idToMarketToken[currTokenId].seller, 'You cannot buy your own NFT');
+
         require(msg.value == price, 'Please submit the asking price in order to continue');
 
         // transfer the amount to the seller
@@ -366,8 +372,7 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         idToMarketToken[currTokenId].sold = true;
         idToMarketToken[currTokenId].price = 0;
 
-
-        // payable(owner).transfer(listingPrice);
+        payable(i_contractOwner).transfer(LISTING_PRICE);
 
     }
 
@@ -378,15 +383,11 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
     )
     public payable nonReentrant {
 
-
-
-
         // uint price = idToMarketToken[tokenId].price;
         uint currTokenId = idToMarketToken[tokenId].tokenId;
 
         // address ownerNow = IERC721(nftContract).ownerOf(tokenId);
         require(payable(msg.sender) == idToMarketToken[currTokenId].seller, 'You cannot manage this NFTs');
-
 
         // transfer the token from contract address to the owner back
         IERC721(address(this)).transferFrom(address(this), msg.sender, tokenId);
@@ -394,10 +395,10 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         idToMarketToken[currTokenId].seller = payable(msg.sender);
         idToMarketToken[currTokenId].sold = true;
         idToMarketToken[currTokenId].price = 0;
-        // _tokensSold.increment();
+
 
         // transfer back the listing price
-        // idToMarketToken[currTokenId].seller.transfer(listingPrice);
+        idToMarketToken[currTokenId].seller.transfer(LISTING_PRICE);
 
     }
 
@@ -410,14 +411,15 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         uint currentIndex = 0;
         uint checkingIndex = 0;
 
-        // looping over the number of items created (if number has not been sold populate the array)
+        // looping over the number of items created (if number has not been sold populate the array) 
+        //  MarketToken[] memory items = new MarketToken[](itemCount);
         MarketToken[] memory items = new MarketToken[](itemCount);
         while (checkingIndex < itemCount) {
             
             if (idToMarketToken[checkingIndex + 1].isExist == true) {
                 uint currentId = checkingIndex + 1;
                 MarketToken storage currentItem = idToMarketToken[currentId];
-                if (currentItem.owner == payable(address(0))) {
+                if (currentItem.owner == payable(address(0)) && currentItem.isExist == true) {
                     items[currentIndex] = currentItem;
                     currentIndex += 1;
                 }
@@ -435,15 +437,19 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         // a second counter for each individual user
         uint currentIndex = 0;
         uint checkingIndex = 0;
+        uint itemCount = 0;
 
-        // for (uint i = 0; i < totalItemCount; i++) {
-        //     if(idToMarketToken[i + 1].owner == msg.sender || idToMarketToken[i + 1].owner == payable(msg.sender)) {
-        //         itemCount += 1;
-        //     }
-        // }
+        for (uint i = 0; i < totalItemCount; i++) {
+            if(idToMarketToken[i + 1].owner == msg.sender || idToMarketToken[i + 1].seller == msg.sender) {
+                
+                 if (idToMarketToken[i + 1].isExist == true) {
+                    itemCount += 1;
+                }               
+            }
+        }
 
 
-        MarketToken[] memory items = new MarketToken[](totalItemCount);
+        MarketToken[] memory items = new MarketToken[](itemCount);
         while (checkingIndex < totalItemCount) {
             if (idToMarketToken[checkingIndex + 1].owner == msg.sender || idToMarketToken[checkingIndex + 1].seller == msg.sender) {
                 uint currentId = checkingIndex + 1;
@@ -460,39 +466,6 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         return items;
     }
 
-    //function for returning an array of minted nfts
-    // function fetchItemsCreated() public view returns(MarketToken[] memory) {
-    //     // insted of owner, it will be the seller
-    //     uint totalItemCount = _tokenIds.current();
-    //     uint itemCount = 0;
-    //     uint currentIndex = 0;
-    //     uint checkingIndex = 0;
-
-    //     for (uint i = 0; i < totalItemCount; i++) {
-    //         if (idToMarketToken[i + 1].minter == msg.sender) {
-    //             itemCount += 1;
-    //         }
-    //     }
-
-    //     MarketToken[] memory items = new MarketToken[](itemCount);
-
-    //     while (currentIndex < totalItemCount) {
-    //         if (idToMarketToken[checkingIndex + 1].seller == msg.sender) {
-    //             uint currentId = checkingIndex + 1;
-    //             MarketToken storage currentItem = idToMarketToken[currentId];
-    //             if (currentItem.isExist == true) {
-    //                 items[currentIndex] = currentItem;
-    //                 currentIndex += 1;
-    //             }
-                
-    //         }
-    //         checkingIndex += 1;
-    //     }
-    //     return items;
-    // }
-
-    //function to fetchAllItems - 
-    // return the number of all items
 
     function fetchMarketAllTokens() public view returns(MarketToken[] memory) {
         uint itemCount = _tokenIds.current();
@@ -501,6 +474,7 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
         uint checkingIndex = 0;
 
         // looping over the number of items created (if number has not been sold populate the array)
+        // MarketToken[] memory items = new MarketToken[](itemCount);
         MarketToken[] memory items = new MarketToken[](itemCount);
         while (checkingIndex < itemCount) {
 
@@ -513,7 +487,39 @@ contract MemeMarketplaceV2 is ERC721URIStorage, ReentrancyGuard {
             checkingIndex +=1;
         }
         return items;
-    }    
+    }
+
+     function fetchMarketCategory(
+        uint category
+     ) 
+     public view returns(MarketToken[] memory) {
+        uint totalItemCount = _tokenIds.current();
+        // uint unsoldItemCount = itemCount - _tokensSold.current();
+        uint currentIndex = 0;
+        uint checkingIndex = 0;
+        uint itemCount = 0;
+
+        for (uint i = 0; i < totalItemCount; i++) {
+            if (idToMarketToken[i + 1].isExist == true && idToMarketToken[i + 1].category == category) {
+                itemCount += 1;             
+            }
+        }
+
+
+        // looping over the number of items created (if category same, the return)
+        MarketToken[] memory items = new MarketToken[](itemCount);
+        while (checkingIndex < totalItemCount) {
+
+            uint currentId = checkingIndex + 1;
+            MarketToken storage currentItem = idToMarketToken[currentId];
+            if (currentItem.isExist == true && currentItem.category == category) {
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+            checkingIndex +=1;
+        }
+        return items;
+    }         
 
     
 }

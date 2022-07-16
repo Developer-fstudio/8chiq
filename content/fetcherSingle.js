@@ -4,8 +4,14 @@ import axios from 'axios'
 export async function getSingleMeme(web3, marketContract, address, tokenId) {
 
 
-  console.log('masuk ke get single meme')
+  console.log('masuk ke get single meme marketContract')
   // console.log(marketContract.methods)
+  // console.log('masuk ke get single meme web3')
+  // console.log(web3)
+  // console.log('masuk ke get single meme address')
+  // console.log(address)
+  // console.log('masuk ke get single meme tokenId')
+  // console.log(tokenId)
   const data = await marketContract.methods.getSingleMarketToken(tokenId).call()
   console.log("data single market")
   console.log(data)
@@ -36,7 +42,7 @@ export async function getSingleMeme(web3, marketContract, address, tokenId) {
       let Difference_In_hour = Math.round(Difference_In_Time / (1000 * 3600))
       usedTime =`${Difference_In_hour}h`
 
-      if (usedTime > 24) {
+      if (Difference_In_hour > 24) {
 
         // now calculate in days
         let Difference_In_days = Math.round(Difference_In_Time / (1000 * 3600 * 24))

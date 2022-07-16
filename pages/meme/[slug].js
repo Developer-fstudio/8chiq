@@ -19,7 +19,7 @@ import { getComments } from '@content/getComments'
 export default function Meme() {
 
   const { account, network, canPurchaseMeme } = useWalletInfo()
-  const { web3, isLoading, marketContract } = useWeb3()
+  const { web3, isLoading, marketContract, requireInstall } = useWeb3()
   const [meme, setMeme] = useState({})
   const [comments, setComments] = useState({})
   const [isBuy, setBuy] = useState(false)
@@ -30,12 +30,12 @@ export default function Meme() {
 
 
   useEffect(()=> {
-    if (!isLoading && web3) {
+    if (!isLoading && web3 && slug) {
       console.log(marketContract)
       // console.log(nftContract)
       loadNFT()
     } 
-  }, [isLoading, canPurchaseMeme, account.data])
+  }, [isLoading, canPurchaseMeme, account.data, slug])
 
   useEffect(()=> {
     if (loadingState === "loaded") {
@@ -44,6 +44,18 @@ export default function Meme() {
   }, [meme])
 
   async function loadNFT() {
+    if (requireInstall) {
+      console.log("sempet masuk sini? karena require install")
+      setLoadingState('loaded')
+      return
+    }
+    
+    if (!network.isSupported && network.data != null) {
+      console.log("sempet masuk sini? karena network is supported")
+      console.log(network)
+      setLoadingState('loaded')
+      return
+    }
     const { data } = await getSingleMeme(web3, marketContract, account, slug)
     setMeme(data)
     console.log('load NFT')
@@ -110,7 +122,7 @@ export default function Meme() {
 
         {/* cards section */}
         { (loadingState === 'loaded' && meme === {}) ? <h1
-           className='px-20 py-7 text-4x1'>you dont own any Meme</h1> :
+           className='px-20 py-7 text-4x1'>Installed Metamask? Connected to the right network?</h1> :
            loadingState === 'not-loaded' ? 
            <div className="w-full flex justify-center">
              <Loader/>

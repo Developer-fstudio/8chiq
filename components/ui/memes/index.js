@@ -50,7 +50,7 @@ export default function MemeDetail({meme, Footer, disabledButton, onClickButton,
       <div className="grid p-10 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-5 max-w-4xl mx-auto">
         <div className='rounded overflow-hidden shadow-md'>
           <div className='flex items-center px-4 py-2'>
-            <a className='flex items-center' href=''>
+            <a className='flex items-center' href={`/interest/${meme.category.toLowerCase()}`}>
               <img className='w-6 h-6 mr-2' src={logoMap[meme.category]} alt=""></img>
               <p className='text-gray-500 text-xs'>{meme.category}</p>
             </a>
